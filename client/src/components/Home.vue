@@ -3,12 +3,29 @@ import { ref } from 'vue';
 import Button from './Button.vue';
 import Input from './Input.vue';
 import Divider from './Divider.vue';
+import { GameService } from '../services/GameService';
+
+const props = defineProps({
+  socket: Object,
+  updateGame: Function,
+})
+
 
 function joinLobby() {
-  console.log('Join lobby', inputValue.value);
+  GameService.joinRoom(props.socket.id, inputValue.value.toString())
+  .then(game => {
+    console.log('Joined room', game);
+
+    props.updateGame(game);
+  });
 }
+
 function createLobby() {
-  console.log('Create lobby');
+  GameService.createRoom(props.socket.id).then(game => {
+    console.log('Created room', game);
+
+    props.updateGame(game);
+  });
 }
 
 const inputValue = ref('');

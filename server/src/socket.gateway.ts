@@ -24,11 +24,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(room).emit(event, data);
   }
 
-  joinRoom(room: string, socketId: string) {
+  joinRoom(socketId: string, room: string) {
     this.server.in(socketId).socketsJoin(room);
   }
 
-  leaveRoom(room: string, socketId: string) {
+  leaveRoom(socketId: string, room: string) {
     this.server.in(socketId).socketsLeave(room);
   }
 

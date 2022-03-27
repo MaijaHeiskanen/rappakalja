@@ -3,37 +3,34 @@
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
 
 import io from 'socket.io-client';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import Home from './components/Home.vue';
 
-const socket = ref();
-const game = ref();
+const socket = ref()
+const game = ref()
 
-function update(data) {
-  game.value = data.game;
+const updateGame = (data) => {
+  game.value = data;
 }
 
 onMounted(() => {
   socket.value = io();
 
-  fetch('/api')
-    .then(res =>  console.log(res.status))
-
-  console.log('socket', socket.value);
-  socket.value.on('update', update);
-  socket.value.on('message', data => console.log(data));
-
-  socket.value.emit('message', 'hello from client!');
+  socket.value.on('update', updateGame);
 })
 
 onUnmounted(() => {
   if (socket.value) socket.value.close()
 })
 
+watch(game, (newVal, oldVal) => {
+  console.log('game changed', {new: newVal, old: oldVal})
+})
+
 </script>
 
 <template>
-  <Home />
+  <Home :updateGame="updateGame" :socket="socket" />
 </template>
 
 <style>

@@ -6,9 +6,6 @@ import io from 'socket.io-client';
 import { onMounted, onUnmounted, ref } from 'vue';
 import Home from './components/Home.vue';
 
-const x = ref(0)
-const y = ref(0)
-
 const socket = ref();
 const game = ref();
 
@@ -20,11 +17,13 @@ onMounted(() => {
   socket.value = io();
 
   fetch('/api')
-    .then(res => res.json())
-    .then(data => console.log(data));
+    .then(res =>  console.log(res.status))
 
   console.log('socket', socket.value);
   socket.value.on('update', update);
+  socket.value.on('message', data => console.log(data));
+
+  socket.value.emit('message', 'hello from client!');
 })
 
 onUnmounted(() => {

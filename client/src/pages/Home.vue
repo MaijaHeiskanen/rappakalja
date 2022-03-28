@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue';
-import Button from './Button.vue';
-import Input from './Input.vue';
-import Divider from './Divider.vue';
+import Button from '../components/Button.vue';
+import Input from '../components/Input.vue';
+import Divider from '../components/Divider.vue';
 import { GameService } from '../services/GameService';
 
 const props = defineProps({

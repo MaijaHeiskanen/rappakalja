@@ -4,7 +4,9 @@
 
 import io from 'socket.io-client';
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import Home from './components/Home.vue';
+import Home from './pages/Home.vue';
+import SelectName from './pages/SelectName.vue';
+import Lobby from './pages/Lobby.vue';
 
 const socket = ref()
 const game = ref()
@@ -31,6 +33,8 @@ watch(game, (newVal, oldVal) => {
 
 <template>
   <Home :updateGame="updateGame" :socket="socket" />
+  <SelectName :updateGame="updateGame" :socket="socket" />
+  <Lobby :updateGame="updateGame" :socket="socket" :game="game" />
 </template>
 
 <style>
@@ -53,6 +57,7 @@ body {
   width: 100%;
 
 }
+
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -62,4 +67,5 @@ body {
   max-height: 800px;
   margin: 0 auto;
 }
+
 </style>

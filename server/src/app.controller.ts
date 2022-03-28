@@ -1,5 +1,4 @@
 import { Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
-import { NotFoundError } from 'rxjs';
 import { AppService } from './app.service';
 import { getGames, setGames, PlayerState, GameState } from './games';
 import { SocketGateway } from './socket.gateway';
@@ -35,9 +34,6 @@ export class AppController {
       const newGame = {room: newRoom, bluff: undefined, players: [{socketId, name: '', state: PlayerState.SelectingName}], gameState: GameState.Lobby, word: '', definitions: [], points: [], votes: []}
       setGames([...games, newGame]);
 
-      console.log('create', games);
-      
-
       return newGame;
     }
   }
@@ -46,15 +42,12 @@ export class AppController {
   joinRoom(@Body('socketId') socketId: string, @Body('room') room: string) {
     const games = getGames();
 
-    const game = games.find(game => game.room === room);
-
-    console.log('join', {room});
-    console.log('join', {games});
-    console.log('join', {game});
-    
+    const game = this.appService.getGame(games, room);
 
     if (game) {
       this.socketGateway.joinRoom(socketId, room);
+
+      game.players.push({socketId, name: '', state: PlayerState.SelectingName});
 
       return game;
     }
@@ -64,8 +57,30 @@ export class AppController {
   }
 
   @Post('leave')
-  leaveRoom(room: string, socketId: string) {
+  leaveRoom(@Body('socketId') socketId: string, @Body('room') room: string) {
     this.socketGateway.leaveRoom(room, socketId);
   }
-}
 
+  @Post('setname')
+  setName(@Body('socketId') socketId: string, @Body('name') name: string) {
+    const games = getGames();
+
+    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+
+    console.log({gameIndex, playerIndex, socketId, name});
+    
+    
+
+    if (gameIndex != null && playerIndex != null) {
+      const game = games[gameIndex];
+
+      game.players[playerIndex].name = name;
+      game.players[playerIndex].state = PlayerState.Ready;
+
+      return game;
+    }
+
+    throw new NotFoundException();
+    
+  }
+}

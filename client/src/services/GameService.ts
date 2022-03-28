@@ -1,11 +1,6 @@
 import { api } from "./api"
 
 export const GameService = {
-    setName(socketId: string, name: string) {
-        return api(
-            "/setname"
-        )
-    },
     createRoom(socketId: string) {
         return api(
             "/create",
@@ -24,6 +19,20 @@ export const GameService = {
         return api(
             "/leave",
             {socketId, room},
+            "POST"
+        )
+    },
+    setName(socketId: string, name: string) {
+        return api(
+            "/setname",
+            {socketId, name},
+            "POST"
+        )
+    },
+    startRound(socketId: string) {
+        return api(
+            "/startround",
+            {socketId},
             "POST"
         )
     }

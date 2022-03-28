@@ -24,15 +24,29 @@ export const GameService = {
     },
     async setName(socketId: string, name: string) {
         return await api(
-            "/setname",
+            "/setName",
             {socketId, name},
             "POST"
         )
     },
     async startRound(socketId: string) {
         return await api(
-            "/startround",
+            "/startRound",
             {socketId},
+            "POST"
+        )
+    },
+    async setWord(socketId: string, word: string) {
+        return await api(
+            "/setWord",
+            {socketId, word},
+            "POST"
+        )
+    },
+    async setDefinition(socketId: string, definition: string) {
+        return await api(
+            "/setDefinition",
+            {socketId, definition},
             "POST"
         )
     }

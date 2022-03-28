@@ -31,7 +31,7 @@ button {
 	position: relative;
     width: 100%;
 
-	&:active {
+	&:active, &:disabled {
 		top: 0.1em;
 		box-shadow: none;
 	}

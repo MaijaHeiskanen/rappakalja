@@ -17,8 +17,6 @@ export class AppService {
 
     games.forEach((game, gIndex) => {
       game.players.forEach((player, index) => {
-        console.log({playerId: player.socketId, socketId, gameIndex: gIndex, playerIndex: index});
-        
         if (player.socketId === socketId) {
           gameIndex = gIndex;
           playerIndex = index;

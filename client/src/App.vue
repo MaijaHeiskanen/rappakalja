@@ -9,7 +9,11 @@ import SelectName from './pages/SelectName.vue';
 import Lobby from './pages/Lobby.vue';
 import { isSelectingName } from './helpers/playerStatuses';
 import { getPlayer } from './helpers/getPlayer';
-import { isLobby } from './helpers/gameStatuses';
+import { isLobby, isBluffWritingWord, isWritingDefinition, isValidatingDefinitions } from './helpers/gameStatuses';
+import { isBluff } from './helpers/isBluff';
+import SetWord from './pages/SetWord.vue';
+import SetDefinition from './pages/SetDefinition.vue';
+import ValidateDefnitions from './pages/ValidateDefnitions.vue';
 
 const socket = ref({});
 const game = ref({});
@@ -25,7 +29,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (socket.value) socket.value.close()
+  if (socket.value) {
+    socket.value.off('update', updateGame);
+    socket.value.close()
+  } 
 })
 
 watch(game, (newVal, oldVal) => {
@@ -37,7 +44,10 @@ watch(game, (newVal, oldVal) => {
 <template>
   <Home v-if="game.gameState === undefined" :updateGame="updateGame" :socket="socket" />
   <SelectName v-else-if="game && isSelectingName(getPlayer(socket.id, game.players))" :updateGame="updateGame" :socket="socket" />
-  <Lobby v-else-if="game && isLobby(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <SetWord v-else-if="game && isBluff(socket, game) && isBluffWritingWord(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <Lobby v-else-if="game && (isLobby(game) || isBluffWritingWord(game))" :bluff="isBluffWritingWord(game) ? game.bluff : undefined" :updateGame="updateGame" :socket="socket" :game="game" />
+  <SetDefinition v-else-if="game && isWritingDefinition(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <ValidateDefnitions v-else-if="game && isBluff(socket, game) && isValidatingDefinitions(game)" :updateGame="updateGame" :socket="socket" :game="game" />
 </template>
 
 <style>

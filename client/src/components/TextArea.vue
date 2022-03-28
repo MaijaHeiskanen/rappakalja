@@ -3,7 +3,8 @@
 defineProps({
     value: String,
     label: String,
-    placeholder: String
+    placeholder: String,
+    disabled: Boolean
 })
 
 defineEmits(['update:value'])
@@ -11,20 +12,21 @@ defineEmits(['update:value'])
 </script>
 
 <template>
-<div class="input">
+<div class="textarea">
     <div class="label">{{ label }}</div>
-        <input 
+        <textarea 
             type="text" 
             :value="value" 
             @input="$emit('update:value', $event.target.value)" 
             v-bind:placeholder="placeholder"
+            :disabled="disabled"
         />
     </div>
 </template>
 
 <style scoped lang="scss">
 
-.input {
+.textarea {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -35,10 +37,10 @@ defineEmits(['update:value'])
     margin: 0.5em 0;
 }
 
-input {
+textarea {
     border: 2px solid #000;
     border-radius: 5px;
-    height: 3em;
+    min-height: 3em;
     line-height: normal;
     color: #282828;
     display: block;
@@ -47,6 +49,7 @@ input {
     user-select: auto;
     font-size: 16px;
     padding: 0.75em;
+    resize: vertical;
 
     :focus{
         border: 3px solid #5551ff;

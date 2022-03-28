@@ -10,10 +10,10 @@ const props = defineProps({
 })
 
 
-function setName() {
-  GameService.setName(props.socket.id, inputValue.value.toString())
+function setWord() {
+  GameService.setWord(props.socket.id, inputValue.value.toString())
   .then(game => {
-    console.log('Set name', game);
+    console.log('Set word', game);
 
     props.updateGame(game);
   });
@@ -25,8 +25,8 @@ const inputValue = ref('');
 
 <template>
 <div class="select-name">
-    <Input v-model:value="inputValue" label="Valitse nimimerkkisi" placeholder="Nimi"/>
-    <Button text="Lähetä" :onClick="setName" />
+    <Input v-model:value="inputValue" label="Kirjoita sana" placeholder="Sana"/>
+    <Button text="Lähetä" :onClick="setWord" />
 </div>
 </template>
 

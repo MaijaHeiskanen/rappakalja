@@ -7,9 +7,12 @@ import { onMounted, onUnmounted, ref, watch } from 'vue';
 import Home from './pages/Home.vue';
 import SelectName from './pages/SelectName.vue';
 import Lobby from './pages/Lobby.vue';
+import { isSelectingName } from './helpers/playerStatuses';
+import { getPlayer } from './helpers/getPlayer';
+import { isLobby } from './helpers/gameStatuses';
 
-const socket = ref()
-const game = ref()
+const socket = ref({});
+const game = ref({});
 
 const updateGame = (data) => {
   game.value = data;
@@ -32,9 +35,9 @@ watch(game, (newVal, oldVal) => {
 </script>
 
 <template>
-  <Home :updateGame="updateGame" :socket="socket" />
-  <SelectName :updateGame="updateGame" :socket="socket" />
-  <Lobby :updateGame="updateGame" :socket="socket" :game="game" />
+  <Home v-if="game.gameState === undefined" :updateGame="updateGame" :socket="socket" />
+  <SelectName v-else-if="game && isSelectingName(getPlayer(socket.id, game.players))" :updateGame="updateGame" :socket="socket" />
+  <Lobby v-else-if="game && isLobby(game)" :updateGame="updateGame" :socket="socket" :game="game" />
 </template>
 
 <style>

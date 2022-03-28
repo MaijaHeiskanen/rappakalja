@@ -1,36 +1,36 @@
 import { api } from "./api"
 
 export const GameService = {
-    createRoom(socketId: string) {
-        return api(
+    async createRoom(socketId: string) {
+        return await api(
             "/create",
             {socketId},
             "POST"
         )
     },
-    joinRoom(socketId: string, room: string) {
-        return api(
+    async joinRoom(socketId: string, room: string) {
+        return await api(
             "/join",
             {socketId, room},
             "POST"
         )
     },
-    leaveRoom(socketId: string, room: string) {
-        return api(
+    async leaveRoom(socketId: string, room: string) {
+        return await api(
             "/leave",
             {socketId, room},
             "POST"
         )
     },
-    setName(socketId: string, name: string) {
-        return api(
+    async setName(socketId: string, name: string) {
+        return await api(
             "/setname",
             {socketId, name},
             "POST"
         )
     },
-    startRound(socketId: string) {
-        return api(
+    async startRound(socketId: string) {
+        return await api(
             "/startround",
             {socketId},
             "POST"

@@ -9,11 +9,14 @@ import SelectName from './pages/SelectName.vue';
 import Lobby from './pages/Lobby.vue';
 import { isSelectingName } from './helpers/playerStatuses';
 import { getPlayer } from './helpers/getPlayer';
-import { isLobby, isBluffWritingWord, isWritingDefinition, isValidatingDefinitions } from './helpers/gameStatuses';
+import { isLobby, isBluffWritingWord, isWritingDefinition, isValidatingDefinitions, isVoting, isRoundEnd } from './helpers/gameStatuses';
 import { isBluff } from './helpers/isBluff';
 import SetWord from './pages/SetWord.vue';
 import SetDefinition from './pages/SetDefinition.vue';
 import ValidateDefnitions from './pages/ValidateDefnitions.vue';
+import WaitForBluff from './pages/WaitForBluff.vue';
+import Vote from './pages/Vote.vue';
+import RoundEnd from './pages/RoundEnd.vue';
 
 const socket = ref({});
 const game = ref({});
@@ -48,6 +51,9 @@ watch(game, (newVal, oldVal) => {
   <Lobby v-else-if="game && (isLobby(game) || isBluffWritingWord(game))" :bluff="isBluffWritingWord(game) ? game.bluff : undefined" :updateGame="updateGame" :socket="socket" :game="game" />
   <SetDefinition v-else-if="game && isWritingDefinition(game)" :updateGame="updateGame" :socket="socket" :game="game" />
   <ValidateDefnitions v-else-if="game && isBluff(socket, game) && isValidatingDefinitions(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <WaitForBluff v-else-if="game && isValidatingDefinitions(game)" text="Hämy käy vastauksia läpi..." />
+  <Vote v-else-if="game && isVoting(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <RoundEnd v-else-if="game && isRoundEnd(game)" :updateGame="updateGame" :socket="socket" :game="game" />
 </template>
 
 <style>

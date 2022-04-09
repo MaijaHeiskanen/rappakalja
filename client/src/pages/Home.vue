@@ -11,7 +11,11 @@ const props = defineProps({
 })
 
 
-function joinLobby() {
+function joinLobby(event) {
+  if (event.preventDefault) {
+    event.preventDefault();
+  }
+
   GameService.joinRoom(props.socket.id, inputValue.value.toString())
   .then(game => {
     console.log('Joined room', game);
@@ -37,8 +41,10 @@ const inputValue = ref('');
   <Button text="Luo aula" :onClick="createLobby" />
   <Divider class="spacing" text="Tai" />
   <div class="section">
-    <Input v-model:value="inputValue" label="Aulakoodi" placeholder="1234"/>
-    <Button text="Liity" :onClick="joinLobby" />
+    <form>
+      <Input v-model:value="inputValue" label="Aulakoodi" placeholder="1234"/>
+      <Button text="Liity" :onClick="joinLobby" submit />
+    </form>
   </div>
 </div>
 </template>

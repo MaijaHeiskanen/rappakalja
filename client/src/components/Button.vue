@@ -2,13 +2,14 @@
 
 defineProps({
   text: String,
-  onClick: Function
+  onClick: Function,
+  submit: Boolean
 })
 
 </script>
 
 <template>
-  <button :onclick="onClick">{{ text }}</button>
+  <button :type="submit ? 'submit' : ''" :onclick="onClick">{{ text }}</button>
 </template>
 
 <style scoped lang="scss">

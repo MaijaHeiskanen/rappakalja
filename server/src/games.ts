@@ -3,7 +3,8 @@ export enum GameState {
     WritingWord,
     WritingDefinition,
     ValidatingDefinitions,
-
+    Voting,
+    RoundEnd
 }
 
 export enum PlayerState {
@@ -25,10 +26,10 @@ export interface Definition {
     definition: string;
 }
 
-export interface Point {
+export interface Points {
     playerSocketId: string;
     playerName: string;
-    point: number;
+    points: number;
 }
 
 export interface Vote {
@@ -44,7 +45,9 @@ export interface Game {
     gameState: GameState;
     word?: string;
     definitions: Definition[];
-    points: Point[]
+    correctDefinition?: Definition;
+    correctDefinitions: Definition[];
+    points: Points[]
     votes: Vote[];
 }
 

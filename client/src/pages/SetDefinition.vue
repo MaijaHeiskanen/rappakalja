@@ -14,7 +14,11 @@ const props = defineProps({
 const definitionSaved = ref(false);
 
 
-function setDefinition() {
+function setDefinition(event) {
+  if (event.preventDefault) {
+    event.preventDefault();
+  }
+
   GameService.setDefinition(props.socket.id, inputValue.value.toString())
   .then(game => {
     console.log('Set definition', game);
@@ -31,9 +35,11 @@ const label = isBluff(props.socket, props.game) ? 'Kirjoita oikea määritelmä 
 
 <template>
 <div class="select-name">
+  <form>
     <TextArea v-model:value="inputValue" :label="label" placeholder="Sana" :disabled="definitionSaved" />
-    <Button text="Lähetä" :onClick="setDefinition" :disabled="definitionSaved" />
-    <div v-if="definitionSaved">Määritelmäsi on tallennettu!</div>
+    <Button text="Lähetä" :onClick="setDefinition" :disabled="definitionSaved" submit />
+  </form>
+  <div v-if="definitionSaved">Määritelmäsi on tallennettu!</div>
 </div>
 </template>
 

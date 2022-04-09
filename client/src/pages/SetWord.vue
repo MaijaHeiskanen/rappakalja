@@ -10,7 +10,11 @@ const props = defineProps({
 })
 
 
-function setWord() {
+function setWord(event) {
+  if (event.preventDefault) {
+    event.preventDefault();
+  }
+
   GameService.setWord(props.socket.id, inputValue.value.toString())
   .then(game => {
     console.log('Set word', game);
@@ -25,8 +29,10 @@ const inputValue = ref('');
 
 <template>
 <div class="select-name">
+  <form>
     <Input v-model:value="inputValue" label="Kirjoita sana" placeholder="Sana"/>
-    <Button text="Lähetä" :onClick="setWord" />
+    <Button text="Lähetä" :onClick="setWord" submit />
+  </form>
 </div>
 </template>
 

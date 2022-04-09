@@ -13,3 +13,11 @@ export const isWritingDefinition = (game) => {
 export const isValidatingDefinitions = (game) => {
     return game.gameState === 3;
 }
+
+export const isVoting = (game) => {
+    return game.gameState === 4;
+}
+
+export const isRoundEnd = (game) => {
+    return game.gameState === 5;
+}

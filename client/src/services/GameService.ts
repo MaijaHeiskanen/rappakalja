@@ -49,5 +49,33 @@ export const GameService = {
             {socketId, definition},
             "POST"
         )
+    },
+    async continueToVote(socketId: string, playerSocketIdsWithCorrectDefinitions: string[]) {
+        return await api(
+            "/continueToVote",
+            {socketId, playerSocketIdsWithCorrectDefinitions},
+            "POST"
+        )
+    },
+    async abortRound(socketId: string, playerSocketIdsWithCorrectDefinitions: string[]) {
+        return await api(
+            "/abortRound",
+            {socketId, playerSocketIdsWithCorrectDefinitions},
+            "POST"
+        )
+    },
+    async vote(socketId: string, definitionId: string) {
+        return await api(
+            "/vote",
+            {socketId, definitionId},
+            "POST"
+        )
+    },
+    async endRound(socketId: string) {
+        return await api(
+            "/endRound",
+            {socketId},
+            "POST"
+        )
     }
 }

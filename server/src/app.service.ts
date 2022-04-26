@@ -50,12 +50,13 @@ export class AppService {
     });
 
     votes.forEach((vote) => {
-      if (vote.playerSocketId === correctDefinition.playerSocketId) {
+      if (vote.definitionId === correctDefinition.id) {
         const playerPoints = points.find(point => point.playerSocketId === vote.playerSocketId);
         playerPoints.points += VOTED_CORRECT_DEFINITION;
         noPlayerPlayedOrVotedCorrectDefinition = false;
       } else {
-        const playerPoints = points.find(point => point.playerSocketId === vote.playerSocketId);
+        const playerSocketId = game.allDefinitions.find(definition => definition.id === vote.definitionId).playerSocketId;
+        const playerPoints = points.find(point => point.playerSocketId === playerSocketId);
         playerPoints.points += OTHER_PLAYER_VOTED_YOUR_DEFINITION;
       }
     });
@@ -66,7 +67,7 @@ export class AppService {
     }
 
     points.sort((a, b) => {
-      return a.points - b.points;
+      return b.points - a.points;
     });
 
     return points;

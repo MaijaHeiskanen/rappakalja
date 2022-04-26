@@ -1,8 +1,9 @@
-import { Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { getGames, setGames, PlayerState, GameState, Game } from './games';
 import { SocketGateway } from './socket.gateway';
 import { generateNumberString } from './utils/generateNumberString';
+import { shuffle } from './utils/shuffle';
 
 @Controller()
 export class AppController {
@@ -38,6 +39,7 @@ export class AppController {
         gameState: GameState.Lobby, 
         word: '', 
         definitions: [], 
+        allDefinitions: [],
         correctDefinition: undefined, 
         correctDefinitions: [], 
         points: [], 
@@ -191,6 +193,7 @@ export class AppController {
       } else {
         game.definitions.push(newDefinition);
       }
+      game.allDefinitions.push(newDefinition);
 
       game.players[playerIndex].state = PlayerState.Ready;
 
@@ -237,11 +240,13 @@ export class AppController {
 
       for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
         const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
+        const allDefinitionIndex = game.allDefinitions.findIndex(def => def.playerSocketId === playerSocketId);
         if (definitionIndex === -1) {
           throw new NotFoundException('Definition not found');
         }
 
         const correctDef = game.definitions.splice(definitionIndex, 1);
+        game.allDefinitions.splice(allDefinitionIndex, 1);
 
         game.correctDefinitions.push(correctDef[0]);
       }
@@ -254,6 +259,7 @@ export class AppController {
         readyplayer.state = PlayerState.Ready;
       });
       player.state = PlayerState.Ready;
+      game.allDefinitions = shuffle(game.allDefinitions);
 
       setGames(games);
       this.socketGateway.updateToRoom(game.room, game);
@@ -320,6 +326,18 @@ export class AppController {
       throw new NotFoundException('Game or player not found');
     }
 
+    const definition = game.allDefinitions.find(def => def.id === definitionId);
+    console.log(definition);
+    
+
+    if (definition == null) {
+      throw new NotFoundException('Definition not found');
+    }
+
+    if (definition.playerSocketId === socketId) {
+      throw new NotFoundException('You cannot vote for your own definition', 'Et voi äänestää omaa arvaustasi');
+    }
+
     game.votes.push(
       {
         playerSocketId: socketId,
@@ -370,6 +388,7 @@ export class AppController {
       game.bluff = undefined;
       game.points = [];
       game.votes = [];
+      game.allDefinitions = [];
       game.correctDefinition = undefined;
       game.correctDefinitions = [];
 

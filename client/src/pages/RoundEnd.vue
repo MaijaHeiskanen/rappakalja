@@ -30,8 +30,11 @@ function endRound() {
   <Definition :definition="game.correctDefinition" showPlayer selected />
   <h2 class="title">Pelatut oikeat määritelmät:</h2>
   <div class="definitions">
-    <div class="definition" v-for="definition in game.correctDefinitions">
+    <div v-if="game.correctDefinitions.length > 0" class="definition" v-for="definition in game.correctDefinitions">
       <Definition :definition="definition" showPlayer selected />
+    </div>
+    <div v-else class="definition">
+      <p>Ei pelattuja oikeita määritelmiä tällä kierroksella</p>
     </div>
   </div>    
   <h2 class="title">Arvaukset:</h2>
@@ -75,13 +78,11 @@ function endRound() {
 }
 
 .definitions {
-  margin-bottom: 1.4em;
+  margin-bottom: 2em;
 
   .definition + .definition {
     margin-top: 0.4em;
   }
-
-  margin-bottom: 3em;
 }
 
 </style>

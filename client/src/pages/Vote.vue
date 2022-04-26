@@ -15,18 +15,24 @@ const skipVote = ref(props.game.correctDefinitions.some(d => d.playerSocketId ==
 const playerIsBluff = ref(isBluff(props.socket, props.game));
 const selectedDefinitionId = ref(null);
 const voted = ref(false);
+const errorMessage = ref('');
 
 function voteDefinition() {
-  GameService.vote(props.socket.id, selectedDefinitionId.value.id)
+  GameService.vote(props.socket.id, selectedDefinitionId.value)
   .then(game => {
     console.log('Definition voted', game);
 
     voted.value = true;
     props.updateGame(game);
+  }).catch(err => {
+    errorMessage.value = err.message;
+    voted.value = false;
   });
 }
 
 function selectDefinition(definition) {
+  errorMessage.value = '';
+
   if (selectedDefinitionId.value === definition.id) {
     selectedDefinitionId.value = null;
 
@@ -41,14 +47,15 @@ function selectDefinition(definition) {
 <template>
 <div class="choose-definition">
   <h2 v-if="skipVote" class="title">Määritelmäsi oli oikein, tässä muiden arvaukset:</h2>
-  <h2 v-else-if="playerIsBluff" class="title">Muut pelaajat arvaavat oikeaa määritelmää...</h2>
-  <h2 v-else-if="!skipVote" class="title">Valitse oikea määritelmä:</h2>
+  <h2 v-else-if="playerIsBluff" class="title">Muut pelaajat koittavat arvata, mikä näistä on oikea määritelmä:</h2>
+  <h2 v-else-if="!skipVote" class="title">Valitse oikea määritelmä sanalle {{game.word}}:</h2>
   <div class="definitions">
-    <div class="definition" v-for="definition in game.definitions">
-      <Definition v-if="definition.playerSocketId !== socket.id" :definition="definition" :showPlayer="false" :canSelect="!skipVote && !voted" :select="selectDefinition" :selected="selectedDefinitionId === definition.id" />
+    <div class="definition" v-for="definition in game.allDefinitions">
+      <Definition :definition="definition" :showPlayer="false" :canSelect="!skipVote && !voted && !playerIsBluff" :select="selectDefinition" :selected="selectedDefinitionId === definition.id" />
     </div>
   </div>    
   <Button v-if="!skipVote && !playerIsBluff" text="Vahvista valinta" :onClick="voteDefinition" :disabled="!selectedDefinitionId || voted" />
+  <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
   <div v-if="voted">Valintasi on tallennettu!</div>
     
 </div>
@@ -74,6 +81,10 @@ function selectDefinition(definition) {
     button {
         margin: 1.4em 0.5em;
     }
+}
+
+.error {
+  color: darkred;
 }
 
 .definitions {

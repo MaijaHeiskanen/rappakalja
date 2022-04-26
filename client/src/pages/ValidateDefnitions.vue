@@ -10,7 +10,6 @@ const props = defineProps({
   game: Object
 })
 
-const canContinue = ref(true);
 const correctDefinitions = ref([]);
 
 function continueToVote() {
@@ -61,7 +60,7 @@ function selectDefinition(definition) {
     <div class="instruction">Keskeytä kierros, jos vähintään kaksi (oikeaa tai keksittyä) määritelmää ovat keskenään samoja</div>
     <div class="buttons">
         <Button text="Keskeytä kierros" :onClick="abortRound" />
-        <Button text="Jatka äänestykseen" :onClick="continueToVote" :disabled="!canContinue" />
+        <Button text="Jatka äänestykseen" :onClick="continueToVote" :disabled="correctDefinitions.length > 1" />
     </div>
 </div>
 </template>

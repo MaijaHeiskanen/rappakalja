@@ -45,6 +45,7 @@ export interface Game {
     gameState: GameState;
     word?: string;
     definitions: Definition[];
+    allDefinitions: Definition[];
     correctDefinition?: Definition;
     correctDefinitions: Definition[];
     points: Points[]

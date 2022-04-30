@@ -29,21 +29,26 @@ function setDefinition(event) {
 }
 
 const inputValue = ref('');
-const label = isBluff(props.socket, props.game) ? 'Kirjoita oikea määritelmä sanalle ' + props.game.word : 'Kirjoita oikea tai keksitty määritelmä sanalle ' + props.game.word
+const label = (isBluff(props.socket, props.game) ? 'Kirjoita oikea määritelmä sanalle ' : 'Kirjoita oikea tai keksitty määritelmä sanalle ') + `<span class="word">${props.game.word}</span>`;
 
 </script>
 
 <template>
 <div class="select-name">
   <form>
-    <TextArea v-model:value="inputValue" :label="label" placeholder="Sana" :disabled="definitionSaved" />
+    <TextArea v-model:value.trim="inputValue" :label="label" placeholder="Sana" :disabled="definitionSaved" />
     <Button text="Lähetä" :onClick="setDefinition" :disabled="definitionSaved" submit />
   </form>
   <div v-if="definitionSaved">Määritelmäsi on tallennettu!</div>
 </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
+
+.word {
+  color: #3369ff;
+  font-weight: bold;
+}
 
 .select-name {
     height: 100%;

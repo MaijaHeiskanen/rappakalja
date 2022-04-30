@@ -46,14 +46,15 @@ function selectDefinition(definition) {
 
 <template>
 <div class="choose-definition">
-  <h2 v-if="skipVote" class="title">Määritelmäsi oli oikein, tässä muiden arvaukset:</h2>
-  <h2 v-else-if="playerIsBluff" class="title">Muut pelaajat koittavat arvata, mikä näistä on oikea määritelmä:</h2>
-  <h2 v-else-if="!skipVote" class="title">Valitse oikea määritelmä sanalle {{game.word}}:</h2>
+  <h2 v-if="skipVote" class="title">Määritelmäsi oli oikein! Muut koittavat arvata näistä oikean määritelmän sanalle <span class="word">{{game.word}}</span>:</h2>
+  <h2 v-else-if="playerIsBluff" class="title">Muut pelaajat koittavat arvata, mikä näistä on oikea määritelmä sanalle <span class="word">{{game.word}}</span>:</h2>
+  <h2 v-else-if="!skipVote" class="title">Valitse oikea määritelmä sanalle <span class="word">{{game.word}}</span>:</h2>
   <div class="definitions">
     <div class="definition" v-for="definition in game.allDefinitions">
       <Definition :definition="definition" :showPlayer="false" :canSelect="!skipVote && !voted && !playerIsBluff" :select="selectDefinition" :selected="selectedDefinitionId === definition.id" />
     </div>
-  </div>    
+  </div>
+  <div class="instruction" v-if="skipVote || playerIsBluff">Odotetaan muita pelaajia...</div>
   <Button v-if="!skipVote && !playerIsBluff" text="Vahvista valinta" :onClick="voteDefinition" :disabled="!selectedDefinitionId || voted" />
   <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
   <div v-if="voted">Valintasi on tallennettu!</div>
@@ -62,6 +63,10 @@ function selectDefinition(definition) {
 </template>
 
 <style scoped lang="scss">
+
+.word {
+  color: #3369ff;
+}
 
 .title {
   font-size: 1.2em;

@@ -26,7 +26,7 @@ function endRound() {
 
 <template>
 <div class="round-end">
-  <h2 class="title">Oikea määritelmä:</h2>
+  <h2 class="title">Oikea määritelmä sanalle <span class="word">{{game.word}}</span>:</h2>
   <Definition :definition="game.correctDefinition" showPlayer selected />
   <h2 class="title">Pelatut oikeat määritelmät:</h2>
   <div class="definitions">
@@ -46,10 +46,12 @@ function endRound() {
   <h2 class="title">Pisteet:</h2>
   <div class="points" v-for="points in game.points">
     <div class="player">
-      <span class="name">{{ points.playerName }}, </span>
-      <span class="points">{{ points.points }}</span>
+      <span class="name">{{ points.playerName }}: </span>
+      <span class="point">{{ points.points }}</span>
     </div>
   </div>
+  <div class="instruction" v-if="game.votes.length === 0">Hämy keskeytti tämän kierroksen</div>
+  <div class="instruction" v-if="!playerIsBluff">Odotetaan, että Hämy {{game.bluff?.name ?? ''}} palaa aulaan...</div>
   <Button v-if="playerIsBluff" text="Takaisin aulaan" :onClick="endRound" />
     
 </div>
@@ -57,12 +59,18 @@ function endRound() {
 
 <style scoped lang="scss">
 
+.word {
+  color: #3369ff;
+}
+
 .title {
   font-size: 1.2em;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.6em;
+  margin-top: 1.2em;
 }
 
 .instruction {
+  margin-top: 2em;
   font-style: italic;
 }
 
@@ -74,15 +82,13 @@ function endRound() {
 
     button {
         margin: 1.4em 0.5em;
+        margin-top: 2em;
     }
 }
 
 .definitions {
-  margin-bottom: 2em;
-
   .definition + .definition {
     margin-top: 0.4em;
   }
 }
-
 </style>

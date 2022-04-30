@@ -51,7 +51,7 @@ watch(game, (newVal, oldVal) => {
   <Lobby v-else-if="game && (isLobby(game) || isBluffWritingWord(game))" :bluff="isBluffWritingWord(game) ? game.bluff : undefined" :updateGame="updateGame" :socket="socket" :game="game" />
   <SetDefinition v-else-if="game && isWritingDefinition(game)" :updateGame="updateGame" :socket="socket" :game="game" />
   <ValidateDefnitions v-else-if="game && isBluff(socket, game) && isValidatingDefinitions(game)" :updateGame="updateGame" :socket="socket" :game="game" />
-  <WaitForBluff v-else-if="game && isValidatingDefinitions(game)" text="Hämy käy vastauksia läpi..." />
+  <WaitForBluff v-else-if="game && isValidatingDefinitions(game)" :text="`Hämy ${game.bluff?.name ?? ''} käy vastauksia läpi...`" />
   <Vote v-else-if="game && isVoting(game)" :updateGame="updateGame" :socket="socket" :game="game" />
   <RoundEnd v-else-if="game && isRoundEnd(game)" :updateGame="updateGame" :socket="socket" :game="game" />
 </template>

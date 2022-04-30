@@ -13,7 +13,7 @@ defineEmits(['update:value'])
 
 <template>
 <div class="textarea">
-    <div class="label">{{ label }}</div>
+    <div class="label" v-html="label"></div>
         <textarea 
             type="text" 
             :value="value" 
@@ -25,6 +25,10 @@ defineEmits(['update:value'])
 </template>
 
 <style scoped lang="scss">
+
+.word {
+  color: #3369ff;
+}
 
 .textarea {
     display: flex;

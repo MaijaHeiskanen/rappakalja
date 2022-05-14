@@ -316,6 +316,7 @@ export class AppController {
 
     game.points = this.appService.calculatePoints(game);
     game.gameState = GameState.RoundEnd;
+    game.roundAborted = true;
 
     player.state = PlayerState.NotReady;
 
@@ -403,6 +404,7 @@ export class AppController {
       game.allDefinitions = [];
       game.correctDefinition = undefined;
       game.correctDefinitions = [];
+      game.roundAborted = undefined;
 
       player.state = PlayerState.Ready;
 

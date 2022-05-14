@@ -50,7 +50,7 @@ function endRound() {
       <span class="point">{{ points.points }}</span>
     </div>
   </div>
-  <!-- <div class="instruction" v-if="game.votes.length === 0">Hämy keskeytti tämän kierroksen</div> -->
+  <div class="instruction" v-if="game.roundAborted">Hämy keskeytti tämän kierroksen</div>
   <div class="instruction" v-if="!playerIsBluff">Odotetaan, että Hämy {{game.bluff?.name ?? ''}} palaa aulaan...</div>
   <Button v-if="playerIsBluff" text="Takaisin aulaan" :onClick="endRound" />
     

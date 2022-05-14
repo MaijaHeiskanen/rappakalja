@@ -50,6 +50,7 @@ export interface Game {
     correctDefinition?: Definition;
     correctDefinitions: Definition[];
     points: Points[];
+    roundAborted?: boolean;
 }
 
 let games: Game[] = [];

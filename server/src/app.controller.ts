@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
+import { Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { getGames, setGames, PlayerState, GameState, Game } from './games';
 import { SocketGateway } from './socket.gateway';
@@ -42,8 +42,7 @@ export class AppController {
         allDefinitions: [],
         correctDefinition: undefined, 
         correctDefinitions: [], 
-        points: [], 
-        votes: []
+        points: [],
       }
       setGames([...games, newGame]);
       this.socketGateway.updateToRoom(newRoom, newGame);
@@ -115,54 +114,54 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
-    if (gameIndex != null) {
-      const game = games[gameIndex];
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    } 
 
-      if (game.gameState !== GameState.Lobby) {
-        throw new NotFoundException('Game has already started');
-      }
+    const game = games[gameIndex];
 
-      game.gameState = GameState.WritingWord;
-      game.bluff = game.players[playerIndex];
-      game.players[playerIndex].state = PlayerState.NotReady;
-
-      setGames(games);
-      this.socketGateway.updateToRoom(game.room, game);
-
-      return game;
+    if (game.gameState !== GameState.Lobby) {
+      throw new NotFoundException('Game has already started');
     }
 
-    throw new NotFoundException();
+    game.gameState = GameState.WritingWord;
+    game.bluff = game.players[playerIndex];
+    game.players[playerIndex].state = PlayerState.NotReady;
+
+    setGames(games);
+    this.socketGateway.updateToRoom(game.room, game);
+
+    return game;
   }
 
   @Post('setWord')
   setWord(@Body('socketId') socketId: string, @Body('word') word: string) {
     const games = getGames();
 
-    const {gameIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    } 
 
     const game = games[gameIndex];
 
-    if (game.bluff.socketId !== socketId) {
+    if (game.bluff?.socketId !== socketId) {
       throw new NotFoundException('Not the bluff');
     }
 
-    if (gameIndex != null) {
-      if (game.gameState !== GameState.WritingWord) {
-        throw new NotFoundException('Game is not in the right state');
-      }
-
-      game.word = word;
-      game.gameState = GameState.WritingDefinition;
-      game.players.forEach(player => player.state = PlayerState.NotReady);
-
-      setGames(games);
-      this.socketGateway.updateToRoom(game.room, game);
-
-      return game;
+    if (game.gameState !== GameState.WritingWord) {
+      throw new NotFoundException('Game is not in the right state');
     }
 
-    throw new NotFoundException();
+    game.word = word;
+    game.gameState = GameState.WritingDefinition;
+    game.players.forEach(player => player.state = PlayerState.NotReady);
+
+    setGames(games);
+    this.socketGateway.updateToRoom(game.room, game);
+
+    return game;
   }
 
   @Post('setDefinition')
@@ -171,6 +170,10 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    }
+
     const game = games[gameIndex];
     const player = game.players[playerIndex];
     let id: string | undefined;
@@ -178,47 +181,47 @@ export class AppController {
 
     for (let i = 0, len = 1000; i < len; i++) {
       temp = generateNumberString(4);
+
       if (game.definitions.every(definition => definition.id !== temp)) {
         id = temp;
 
         break;
       }
+    }
+
+    if (id == null) {
+      throw new NotFoundException('COuld not generate unique id, try again');
+    }
+
+    const newDefinition = {id, definition, playerSocketId: socketId, playerName: player.name, votes: []};
+
+    if (game.gameState !== GameState.WritingDefinition) {
+      throw new NotFoundException('Game is not in the right state');
+    }
+
+    if (socketId === game.bluff?.socketId) {
+      game.correctDefinition = newDefinition;
+    } else {
+      game.definitions.push(newDefinition);
+    }
+    game.allDefinitions.push(newDefinition);
+
+    game.players[playerIndex].state = PlayerState.Ready;
+
+    const everyPlayerReady = game.players.every(player => player.state !== PlayerState.NotReady);
+    if (everyPlayerReady) {
+      game.gameState = GameState.ValidatingDefinitions;
+
+      const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff?.socketId);
+
+      game.players[bluffPlayerIndex].state = PlayerState.NotReady;
 
     }
 
-    const newDefinition = {id, definition, playerSocketId: socketId, playerName: player.name};
+    setGames(games);
+    this.socketGateway.updateToRoom(game.room, game);
 
-    if (gameIndex != null && playerIndex != null) {
-      if (game.gameState !== GameState.WritingDefinition) {
-        throw new NotFoundException('Game is not in the right state');
-      }
-
-      if (socketId === game.bluff.socketId) {
-        game.correctDefinition = newDefinition;
-      } else {
-        game.definitions.push(newDefinition);
-      }
-      game.allDefinitions.push(newDefinition);
-
-      game.players[playerIndex].state = PlayerState.Ready;
-
-      const everyPlayerReady = game.players.every(player => player.state !== PlayerState.NotReady);
-      if (everyPlayerReady) {
-        game.gameState = GameState.ValidatingDefinitions;
-
-        const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff.socketId);
-
-        game.players[bluffPlayerIndex].state = PlayerState.NotReady;
-
-      }
-
-      setGames(games);
-      this.socketGateway.updateToRoom(game.room, game);
-
-      return game;
-    }
-
-    throw new NotFoundException();
+    return game;
   }
 
   @Post('continueToVote')
@@ -231,48 +234,52 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    }
+
     const game = games[gameIndex];
     const player = game.players[playerIndex];
 
-    if (gameIndex != null && playerIndex != null) {
-      if (game.gameState !== GameState.ValidatingDefinitions) {
-        throw new NotFoundException('Game is not in the right state');
-      }
-
-      if (socketId !== game.bluff.socketId) {
-        throw new NotFoundException('Not the bluff');
-      }
-
-      for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
-        const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
-        const allDefinitionIndex = game.allDefinitions.findIndex(def => def.playerSocketId === playerSocketId);
-        if (definitionIndex === -1) {
-          throw new NotFoundException('Definition not found');
-        }
-
-        const correctDef = game.definitions.splice(definitionIndex, 1);
-        game.allDefinitions.splice(allDefinitionIndex, 1);
-
-        game.correctDefinitions.push(correctDef[0]);
-      }
-
-      game.gameState = GameState.Voting;
-
-      game.players.forEach(player => player.state = PlayerState.NotReady);
-      game.correctDefinitions.forEach(def => {
-        const readyplayer = game.players.find(player => player.socketId === def.playerSocketId);
-        readyplayer.state = PlayerState.Ready;
-      });
-      player.state = PlayerState.Ready;
-      game.allDefinitions = shuffle(game.allDefinitions);
-
-      setGames(games);
-      this.socketGateway.updateToRoom(game.room, game);
-
-      return game;
+    if (game.gameState !== GameState.ValidatingDefinitions) {
+      throw new NotFoundException('Game is not in the right state');
     }
 
-    throw new NotFoundException();
+    if (socketId !== game.bluff?.socketId) {
+      throw new NotFoundException('Not the bluff');
+    }
+
+    for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
+      const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
+      const allDefinitionIndex = game.allDefinitions.findIndex(def => def.playerSocketId === playerSocketId);
+
+      if (definitionIndex === -1) {
+        throw new NotFoundException('Definition not found');
+      }
+
+      const correctDef = game.definitions.splice(definitionIndex, 1);
+      game.allDefinitions.splice(allDefinitionIndex, 1);
+
+      game.correctDefinitions.push(correctDef[0]);
+    }
+
+    game.gameState = GameState.Voting;
+
+    game.players.forEach(player => player.state = PlayerState.NotReady);
+    game.correctDefinitions.forEach(def => {
+      const readyPlayer = game.players.find(player => player.socketId === def.playerSocketId);
+
+      if (readyPlayer) {
+        readyPlayer.state = PlayerState.Ready;
+      }
+    });
+    player.state = PlayerState.Ready;
+    game.allDefinitions = shuffle(game.allDefinitions);
+
+    setGames(games);
+    this.socketGateway.updateToRoom(game.room, game);
+
+    return game;
   }
 
   @Post('abortRound')
@@ -281,41 +288,41 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    }
+
     const game = games[gameIndex];
     const player = game.players[playerIndex];
 
-    if (gameIndex != null && playerIndex != null) {
-      if (game.gameState !== GameState.ValidatingDefinitions) {
-        throw new NotFoundException('Game is not in the right state');
-      }
-
-      if (socketId !== game.bluff.socketId) {
-        throw new NotFoundException('Not the bluff');
-      }
-
-      for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
-        const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
-        if (definitionIndex === -1) {
-          throw new NotFoundException('Definition not found');
-        }
-
-        const correctDef = game.definitions.splice(definitionIndex, 1);
-
-        game.correctDefinitions.push(correctDef[0]);
-      }
-
-      game.points = this.appService.calculatePoints(game);
-      game.gameState = GameState.RoundEnd;
-
-      player.state = PlayerState.NotReady;
-
-      setGames(games);
-      this.socketGateway.updateToRoom(game.room, game);
-
-      return game;
+    if (game.gameState !== GameState.ValidatingDefinitions) {
+      throw new NotFoundException('Game is not in the right state');
     }
 
-    throw new NotFoundException();
+    if (socketId !== game.bluff?.socketId) {
+      throw new NotFoundException('Not the bluff');
+    }
+
+    for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
+      const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
+      if (definitionIndex === -1) {
+        throw new NotFoundException('Definition not found');
+      }
+
+      const correctDef = game.definitions.splice(definitionIndex, 1);
+
+      game.correctDefinitions.push(correctDef[0]);
+    }
+
+    game.points = this.appService.calculatePoints(game);
+    game.gameState = GameState.RoundEnd;
+
+    player.state = PlayerState.NotReady;
+
+    setGames(games);
+    this.socketGateway.updateToRoom(game.room, game);
+
+    return game;
   }
 
   @Post('vote')
@@ -324,32 +331,29 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
-    const game = games[gameIndex];
-    const player = game.players[playerIndex];
-
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
     }
 
-    const definition = game.allDefinitions.find(def => def.id === definitionId);
-    console.log(definition);
-    
+    const game = games[gameIndex];
+    const player = game.players[playerIndex];
 
-    if (definition == null) {
+    const allDefiniton = game.allDefinitions.find(def => def.id === definitionId);
+
+    if (allDefiniton == null) {
       throw new NotFoundException('Definition not found');
     }
 
-    if (definition.playerSocketId === socketId) {
+    if (allDefiniton.playerSocketId === socketId) {
       throw new NotFoundException('You cannot vote for your own definition', 'Et voi äänestää omaa arvaustasi');
     }
 
-    game.votes.push(
-      {
-        playerSocketId: socketId,
-        playerName: player.name,
-        definitionId
-      }
-    )
+    const vote = {
+      playerSocketId: socketId,
+      playerName: player.name,
+    }
+
+    allDefiniton.votes.push(vote);
 
     player.state = PlayerState.Ready;
 
@@ -357,7 +361,7 @@ export class AppController {
       if (everyPlayerReady) {
         game.gameState = GameState.RoundEnd;
 
-        const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff.socketId);
+        const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff?.socketId);
 
         game.players[bluffPlayerIndex].state = PlayerState.NotReady;
         game.points = this.appService.calculatePoints(game);
@@ -375,6 +379,10 @@ export class AppController {
 
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    }
+
     const game = games[gameIndex];
     const player = game.players[playerIndex];
 
@@ -383,7 +391,7 @@ export class AppController {
         throw new NotFoundException('Game is not in the right state');
       }
 
-      if (socketId !== game.bluff.socketId) {
+      if (socketId !== game.bluff?.socketId) {
         throw new NotFoundException('Not the bluff');
       }
 
@@ -392,7 +400,6 @@ export class AppController {
       game.word = '';
       game.bluff = undefined;
       game.points = [];
-      game.votes = [];
       game.allDefinitions = [];
       game.correctDefinition = undefined;
       game.correctDefinitions = [];

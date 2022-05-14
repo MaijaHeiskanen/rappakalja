@@ -25,6 +25,7 @@ export interface Definition {
     playerSocketId: string;
     playerName: string;
     definition: string;
+    votes: Vote[];
 }
 
 export interface Points {
@@ -36,7 +37,6 @@ export interface Points {
 export interface Vote {
     playerSocketId: string;
     playerName: string;
-    definitionId: string;
 }
 
 export interface Game {
@@ -49,8 +49,7 @@ export interface Game {
     allDefinitions: Definition[];
     correctDefinition?: Definition;
     correctDefinitions: Definition[];
-    points: Points[]
-    votes: Vote[];
+    points: Points[];
 }
 
 let games: Game[] = [];

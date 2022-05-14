@@ -27,11 +27,11 @@ function endRound() {
 <template>
 <div class="round-end">
   <h2 class="title">Oikea määritelmä sanalle <span class="word">{{game.word}}</span>:</h2>
-  <Definition :definition="game.correctDefinition" showPlayer selected />
+  <Definition :definition="game.correctDefinition" showPlayer showVotes selected />
   <h2 class="title">Pelatut oikeat määritelmät:</h2>
   <div class="definitions">
-    <div v-if="game.correctDefinitions.length > 0" class="definition" v-for="definition in game.correctDefinitions">
-      <Definition :definition="definition" showPlayer selected />
+    <div v-if="game.correctDefinitions.length > 0" v-for="definition in game.correctDefinitions">
+      <Definition :definition="definition" showPlayer showVotes selected />
     </div>
     <div v-else class="definition">
       <p>Ei pelattuja oikeita määritelmiä tällä kierroksella</p>
@@ -40,7 +40,7 @@ function endRound() {
   <h2 class="title">Arvaukset:</h2>
   <div class="definitions">
     <div class="definition" v-for="definition in game.definitions">
-      <Definition :definition="definition" showPlayer />
+      <Definition :definition="definition" showPlayer showVotes />
     </div>
   </div>    
   <h2 class="title">Pisteet:</h2>
@@ -50,7 +50,7 @@ function endRound() {
       <span class="point">{{ points.points }}</span>
     </div>
   </div>
-  <div class="instruction" v-if="game.votes.length === 0">Hämy keskeytti tämän kierroksen</div>
+  <!-- <div class="instruction" v-if="game.votes.length === 0">Hämy keskeytti tämän kierroksen</div> -->
   <div class="instruction" v-if="!playerIsBluff">Odotetaan, että Hämy {{game.bluff?.name ?? ''}} palaa aulaan...</div>
   <Button v-if="playerIsBluff" text="Takaisin aulaan" :onClick="endRound" />
     

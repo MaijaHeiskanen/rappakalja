@@ -30,11 +30,10 @@ export class AppService {
 
   calculatePoints(game: Game) {
     const players = game.players;
-    const votes = game.votes;
     const points: Points[] = [];
     const correctDefinitions = game.correctDefinitions;
     const correctDefinition = game.correctDefinition;
-    let noPlayerPlayedOrVotedCorrectDefinition = correctDefinitions.length === 0 && votes.length > 0;
+    const definitions = game.definitions;
 
     players.forEach((player) => {
       points.push({
@@ -42,36 +41,91 @@ export class AppService {
         playerName: player.name,
         points: 0
       });
-    })
-
-    correctDefinitions.forEach((correctDefinition) => {
-      const playerPoints = points.find(point => point.playerSocketId === correctDefinition.playerSocketId);
-      playerPoints.points += PLAYED_CORRECT_DEFINITION;
     });
 
-    votes.forEach((vote) => {
-      if (vote.definitionId === correctDefinition.id) {
-        const playerPoints = points.find(point => point.playerSocketId === vote.playerSocketId);
-        playerPoints.points += VOTED_CORRECT_DEFINITION;
-        noPlayerPlayedOrVotedCorrectDefinition = false;
-      } else {
-        const playerSocketId = game.allDefinitions.find(definition => definition.id === vote.definitionId).playerSocketId;
-        const playerPoints = points.find(point => point.playerSocketId === playerSocketId);
-        playerPoints.points += OTHER_PLAYER_VOTED_YOUR_DEFINITION;
+
+    const noPlayerPlayedOrVotedCorrectDefinition = correctDefinitions.length === 0 && correctDefinition?.votes.length === 0;
+
+    if (noPlayerPlayedOrVotedCorrectDefinition) {
+      const bluff = points.find(point => point.playerSocketId === game.bluff?.socketId);
+
+      if (bluff) {
+        bluff.points += NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION;
+      }
+    }
+
+    correctDefinitions.forEach((correctDefinition) => {
+      const player = points.find(point => point.playerSocketId === correctDefinition.playerSocketId);
+
+      if (player) {
+        player.points += PLAYED_CORRECT_DEFINITION;
       }
     });
 
-    if (noPlayerPlayedOrVotedCorrectDefinition) {
-      const bluff = points.find(point => point.playerSocketId === game.bluff.socketId);
-      bluff.points += NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION;
-    }
+    correctDefinition?.votes.forEach((vote) => {
+      const player = points.find(point => point.playerSocketId === vote.playerSocketId);
 
-    points.sort((a, b) => {
-      return b.points - a.points;
+      if (player) {
+        player.points += VOTED_CORRECT_DEFINITION;
+      }
+    });
+
+    definitions.forEach((definition) => {
+      const player = points.find(point => point.playerSocketId === definition.playerSocketId);
+
+      if (player) {
+        player.points += OTHER_PLAYER_VOTED_YOUR_DEFINITION * definition.votes.length;
+      }
     });
 
     return points;
   }
+
+
+  // calculatePoints222(game: Game) {
+  //   const players = game.players;
+  //   const votes = game.votes;
+  //   const points: Points[] = [];
+  //   const correctDefinitions = game.correctDefinitions;
+  //   const correctDefinition = game.correctDefinition;
+  //   let noPlayerPlayedOrVotedCorrectDefinition = correctDefinitions.length === 0 && votes.length > 0;
+
+  //   players.forEach((player) => {
+  //     points.push({
+  //       playerSocketId: player.socketId,
+  //       playerName: player.name,
+  //       points: 0
+  //     });
+  //   })
+
+  //   correctDefinitions.forEach((correctDefinition) => {
+  //     const playerPoints = points.find(point => point.playerSocketId === correctDefinition.playerSocketId);
+  //     playerPoints.points += PLAYED_CORRECT_DEFINITION;
+  //   });
+
+  //   votes.forEach((vote) => {
+  //     if (vote.definitionId === correctDefinition.id) {
+  //       const playerPoints = points.find(point => point.playerSocketId === vote.playerSocketId);
+  //       playerPoints.points += VOTED_CORRECT_DEFINITION;
+  //       noPlayerPlayedOrVotedCorrectDefinition = false;
+  //     } else {
+  //       const playerSocketId = game.allDefinitions.find(definition => definition.id === vote.definitionId).playerSocketId;
+  //       const playerPoints = points.find(point => point.playerSocketId === playerSocketId);
+  //       playerPoints.points += OTHER_PLAYER_VOTED_YOUR_DEFINITION;
+  //     }
+  //   });
+
+  //   if (noPlayerPlayedOrVotedCorrectDefinition) {
+  //     const bluff = points.find(point => point.playerSocketId === game.bluff.socketId);
+  //     bluff.points += NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION;
+  //   }
+
+  //   points.sort((a, b) => {
+  //     return b.points - a.points;
+  //   });
+
+  //   return points;
+  // }
 
   removeDisconnectedPlayers(game: Game) {
     return game.players.filter(player => player.state !== PlayerState.Disconnected);
@@ -98,11 +152,11 @@ export class AppService {
   }
 
   playerHasVoted(game: Game, name: string): boolean {
-    return game.votes.find(vote => vote.playerName === name) !== undefined;
+    return game.allDefinitions.find(vote => vote.playerName === name) !== undefined;
   }
 
   getStateOfJoiningPlayer(game: Game, name: string): PlayerState {
-    const playerIsBluff = game.bluff?.name === name;
+    const playerIsBluff = game.bluff?.name;
 
     if (playerIsBluff) {
       switch (game.gameState) {

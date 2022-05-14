@@ -24,6 +24,7 @@ function setDefinition(event) {
     console.log('Set definition', game);
 
     definitionSaved.value = true;
+    inputValue.value = '********';
     props.updateGame(game);
   });
 }

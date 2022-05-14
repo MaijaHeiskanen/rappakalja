@@ -78,7 +78,6 @@ function endRound() {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: center;
 
     button {
         margin: 1.4em 0.5em;

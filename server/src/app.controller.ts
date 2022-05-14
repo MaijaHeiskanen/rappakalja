@@ -84,14 +84,19 @@ export class AppController {
     const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     console.log({gameIndex, playerIndex, socketId, name});
-    
-    
 
     if (gameIndex != null && playerIndex != null) {
       const game = games[gameIndex];
+      const sameNamedPlayer = game.players.findIndex(player => player.name === name);
+      let keepedPlayerIndex = sameNamedPlayer === -1 ? playerIndex : sameNamedPlayer;
 
-      game.players[playerIndex].name = name;
-      game.players[playerIndex].state = PlayerState.Ready;
+      game.players[keepedPlayerIndex].socketId = socketId;
+      game.players[keepedPlayerIndex].name = name;
+      game.players[keepedPlayerIndex].state = this.appService.getStateOfJoiningPlayer(game, name);
+
+      if (keepedPlayerIndex !== playerIndex) {
+        game.players.splice(playerIndex, 1);
+      }
 
       setGames(games);
       this.socketGateway.updateToRoom(game.room, game);
@@ -393,6 +398,8 @@ export class AppController {
       game.correctDefinitions = [];
 
       player.state = PlayerState.Ready;
+
+      game.players = this.appService.removeDisconnectedPlayers(game);
 
       setGames(games);
       this.socketGateway.updateToRoom(game.room, game);

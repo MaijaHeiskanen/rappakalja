@@ -11,6 +11,7 @@ export enum PlayerState {
     SelectingName,
     NotReady,
     Ready,
+    Disconnected
 }
 
 export interface Player {

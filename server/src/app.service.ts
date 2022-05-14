@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Game, Points } from './games';
+import { Game, PlayerState, Points, Player, GameState } from './games';
 import { PLAYED_CORRECT_DEFINITION, VOTED_CORRECT_DEFINITION, OTHER_PLAYER_VOTED_YOUR_DEFINITION, NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION } from './constants/points';
 
 @Injectable()
@@ -72,4 +72,67 @@ export class AppService {
 
     return points;
   }
+
+  removeDisconnectedPlayers(game: Game) {
+    return game.players.filter(player => player.state !== PlayerState.Disconnected);
+  }
+
+  setPlayerReadyIfNotDisconnected(player: Player) {
+    if (player.state !== PlayerState.Disconnected) {
+      player.state = PlayerState.Ready;
+    }
+
+    return player;
+  }
+
+  setPlayerNotReadyIfNotDisconnected(player: Player) {
+    if (player.state !== PlayerState.Disconnected) {
+      player.state = PlayerState.NotReady;
+    }
+
+    return player;
+  }
+
+  playerHasWrittenDefinition(game: Game, name: string): boolean {
+    return game.definitions.find(definition => definition.playerName === name) !== undefined;
+  }
+
+  playerHasVoted(game: Game, name: string): boolean {
+    return game.votes.find(vote => vote.playerName === name) !== undefined;
+  }
+
+  getStateOfJoiningPlayer(game: Game, name: string): PlayerState {
+    const playerIsBluff = game.bluff?.name === name;
+
+    if (playerIsBluff) {
+      switch (game.gameState) {
+        case GameState.WritingDefinition:
+          return game.correctDefinition ? PlayerState.Ready : PlayerState.NotReady;
+        case GameState.WritingWord:
+          game.word ? PlayerState.Ready : PlayerState.NotReady;
+        case GameState.ValidatingDefinitions:
+        case GameState.RoundEnd:
+          return PlayerState.NotReady;
+        case GameState.Voting:
+        case GameState.Lobby:
+          return PlayerState.Ready;
+        default:
+          return PlayerState.Ready;
+      }
+    } else {
+      switch (game.gameState) {
+        case GameState.WritingDefinition:
+          return this.playerHasWrittenDefinition(game, name) ? PlayerState.Ready : PlayerState.NotReady;
+        case GameState.Voting:
+          return this.playerHasVoted(game, name) ? PlayerState.Ready : PlayerState.NotReady;
+        case GameState.Lobby:
+        case GameState.WritingWord:
+        case GameState.ValidatingDefinitions:
+        case GameState.RoundEnd:
+        default:
+          return PlayerState.Ready;
+      }
+    }
+  }
+
 }

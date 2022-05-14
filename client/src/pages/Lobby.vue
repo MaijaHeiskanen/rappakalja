@@ -1,8 +1,9 @@
 <script setup>
 import Button from '../components/Button.vue';
 import { GameService } from '../services/GameService';
+import RoomCode from '../components/RoomCode.vue';
 
-const MIN_AMOUNT_OF_PLAYERS = 4;
+const MIN_AMOUNT_OF_PLAYERS = 1;
 
 const props = defineProps({
   socket: Object,
@@ -24,7 +25,6 @@ function startRound() {
 
 <template>
 <div v-if="game" class="lobby">
-    <div>Aulan koodi: {{game.room}}</div>
     <div>
       <h4>Pelaajia: {{game.players.length}}</h4>
       <div class="players" v-for="(player, index) in game.players">
@@ -34,7 +34,7 @@ function startRound() {
     <div>
     <Button text="Olen Hämy, aloita peli" :onClick="startRound" :disabled="bluff || game.players.length < MIN_AMOUNT_OF_PLAYERS" />
     <div v-if="bluff">{{bluff.name}} kirjoittaa sanaa...</div>
-    <div v-else-if="game.players.length < MIN_AMOUNT_OF_PLAYERS">Peliin tarvitaan vähintään {{MIN_AMOUNT_OF_PLAYERS}} pelaajaa</div>
+    <div class="" v-else-if="game.players.length < MIN_AMOUNT_OF_PLAYERS">Peliin tarvitaan vähintään {{MIN_AMOUNT_OF_PLAYERS}} pelaajaa</div>
     </div>
 </div>
 </template>
@@ -45,7 +45,7 @@ function startRound() {
     height: 100%;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: space-evenly;
 
     button {
         margin-top: 1em;

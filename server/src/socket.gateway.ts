@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from "@nestjs/websockets";
 import { Socket, Server } from 'socket.io';
 import { AppService } from "./app.service";
-import { getGames, setGames } from "./games";
+import { getGames, PlayerState, setGames } from "./games";
 
 @Injectable()
 @WebSocketGateway()
@@ -16,6 +16,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`connected: ${client.id}`);
 
   }
+
   handleDisconnect(client: Socket) {
     console.log(`disconnected: ${client.id}`);
     const games = getGames();
@@ -34,7 +35,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (gameIndex !== null && playerIndex !== null) {
       const game = games[gameIndex];
-      game.players.splice(playerIndex, 1);
+      const player = game.players[playerIndex];
+      if (player.state === PlayerState.SelectingName) {
+        game.players.splice(playerIndex, 1);
+      } else {
+        game.players[playerIndex].state = PlayerState.Disconnected;
+      }
 
       setGames(games);
 

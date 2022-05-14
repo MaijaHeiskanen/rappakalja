@@ -17,6 +17,7 @@ import ValidateDefnitions from './pages/ValidateDefnitions.vue';
 import WaitForBluff from './pages/WaitForBluff.vue';
 import Vote from './pages/Vote.vue';
 import RoundEnd from './pages/RoundEnd.vue';
+import RoomCode from './components/RoomCode.vue';
 
 const socket = ref({});
 const game = ref({});
@@ -45,18 +46,21 @@ watch(game, (newVal, oldVal) => {
 </script>
 
 <template>
-  <Home v-if="game.gameState === undefined" :updateGame="updateGame" :socket="socket" />
-  <SelectName v-else-if="game && isSelectingName(getPlayer(socket.id, game.players))" :updateGame="updateGame" :socket="socket" />
-  <SetWord v-else-if="game && isBluff(socket, game) && isBluffWritingWord(game)" :updateGame="updateGame" :socket="socket" :game="game" />
-  <Lobby v-else-if="game && (isLobby(game) || isBluffWritingWord(game))" :bluff="isBluffWritingWord(game) ? game.bluff : undefined" :updateGame="updateGame" :socket="socket" :game="game" />
-  <SetDefinition v-else-if="game && isWritingDefinition(game)" :updateGame="updateGame" :socket="socket" :game="game" />
-  <ValidateDefnitions v-else-if="game && isBluff(socket, game) && isValidatingDefinitions(game)" :updateGame="updateGame" :socket="socket" :game="game" />
-  <WaitForBluff v-else-if="game && isValidatingDefinitions(game)" :text="`Hämy ${game.bluff?.name ?? ''} käy vastauksia läpi...`" />
-  <Vote v-else-if="game && isVoting(game)" :updateGame="updateGame" :socket="socket" :game="game" />
-  <RoundEnd v-else-if="game && isRoundEnd(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  <RoomCode v-if="game.gameState !== undefined && !isSelectingName(getPlayer(socket.id, game.players))" :game="game" />
+  <div class="content">
+    <Home v-if="game.gameState === undefined" :updateGame="updateGame" :socket="socket" />
+    <SelectName v-else-if="game && isSelectingName(getPlayer(socket.id, game.players))" :updateGame="updateGame" :socket="socket" />
+    <SetWord v-else-if="game && isBluff(socket, game) && isBluffWritingWord(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+    <Lobby v-else-if="game && (isLobby(game) || isBluffWritingWord(game))" :bluff="isBluffWritingWord(game) ? game.bluff : undefined" :updateGame="updateGame" :socket="socket" :game="game" />
+    <SetDefinition v-else-if="game && isWritingDefinition(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+    <ValidateDefnitions v-else-if="game && isBluff(socket, game) && isValidatingDefinitions(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+    <WaitForBluff v-else-if="game && isValidatingDefinitions(game)" :text="`Hämy ${game.bluff?.name ?? ''} käy vastauksia läpi...`" />
+    <Vote v-else-if="game && isVoting(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+    <RoundEnd v-else-if="game && isRoundEnd(game)" :updateGame="updateGame" :socket="socket" :game="game" />
+  </div>
 </template>
 
-<style>
+<style lang="scss">
 
 html {
   margin: 0;
@@ -85,6 +89,14 @@ body {
   max-width: 400px;
   max-height: 800px;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  .content {
+    margin-bottom: 1em;
+    flex-grow: 1;
+  }
 }
 
 </style>

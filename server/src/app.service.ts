@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Game, PlayerState, Points, Player, GameState } from './games';
-import { PLAYED_CORRECT_DEFINITION, VOTED_CORRECT_DEFINITION, OTHER_PLAYER_VOTED_YOUR_DEFINITION, NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION } from './constants/points';
+import {
+  PLAYED_CORRECT_DEFINITION,
+  VOTED_CORRECT_DEFINITION,
+  OTHER_PLAYER_VOTED_YOUR_DEFINITION,
+  NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION,
+} from './constants/points';
 
 @Injectable()
 export class AppService {
@@ -9,10 +14,13 @@ export class AppService {
   }
 
   getGame(games: Game[], room: string) {
-    return games.find(game => game.room === room);
+    return games.find((game) => game.room === room);
   }
 
-  getGameIndexAndPlayerIndex(games: Game[], socketId: string): {gameIndex: number | null, playerIndex: number | null} {
+  getGameIndexAndPlayerIndex(
+    games: Game[],
+    socketId: string,
+  ): { gameIndex: number | null; playerIndex: number | null } {
     let gameIndex = null;
     let playerIndex = null;
 
@@ -25,7 +33,7 @@ export class AppService {
       });
     });
 
-    return {gameIndex, playerIndex};
+    return { gameIndex, playerIndex };
   }
 
   calculatePoints(game: Game) {
@@ -39,15 +47,17 @@ export class AppService {
       points.push({
         playerSocketId: player.socketId,
         playerName: player.name,
-        points: 0
+        points: 0,
       });
     });
 
-
-    const noPlayerPlayedOrVotedCorrectDefinition = correctDefinitions.length === 0 && correctDefinition?.votes.length === 0;
+    const noPlayerPlayedOrVotedCorrectDefinition =
+      correctDefinitions.length === 0 && correctDefinition?.votes.length === 0;
 
     if (noPlayerPlayedOrVotedCorrectDefinition) {
-      const bluff = points.find(point => point.playerSocketId === game.bluff?.socketId);
+      const bluff = points.find(
+        (point) => point.playerSocketId === game.bluff?.socketId,
+      );
 
       if (bluff) {
         bluff.points += NO_PLAYER_PLAYED_OR_VOTED_CORRECT_DEFINITION;
@@ -55,7 +65,9 @@ export class AppService {
     }
 
     correctDefinitions.forEach((correctDefinition) => {
-      const player = points.find(point => point.playerSocketId === correctDefinition.playerSocketId);
+      const player = points.find(
+        (point) => point.playerSocketId === correctDefinition.playerSocketId,
+      );
 
       if (player) {
         player.points += PLAYED_CORRECT_DEFINITION;
@@ -63,7 +75,9 @@ export class AppService {
     });
 
     correctDefinition?.votes.forEach((vote) => {
-      const player = points.find(point => point.playerSocketId === vote.playerSocketId);
+      const player = points.find(
+        (point) => point.playerSocketId === vote.playerSocketId,
+      );
 
       if (player) {
         player.points += VOTED_CORRECT_DEFINITION;
@@ -71,16 +85,18 @@ export class AppService {
     });
 
     definitions.forEach((definition) => {
-      const player = points.find(point => point.playerSocketId === definition.playerSocketId);
+      const player = points.find(
+        (point) => point.playerSocketId === definition.playerSocketId,
+      );
 
       if (player) {
-        player.points += OTHER_PLAYER_VOTED_YOUR_DEFINITION * definition.votes.length;
+        player.points +=
+          OTHER_PLAYER_VOTED_YOUR_DEFINITION * definition.votes.length;
       }
     });
 
     return points;
   }
-
 
   // calculatePoints222(game: Game) {
   //   const players = game.players;
@@ -128,7 +144,9 @@ export class AppService {
   // }
 
   removeDisconnectedPlayers(game: Game) {
-    return game.players.filter(player => player.state !== PlayerState.Disconnected);
+    return game.players.filter(
+      (player) => player.state !== PlayerState.Disconnected,
+    );
   }
 
   setPlayerReadyIfNotDisconnected(player: Player) {
@@ -148,11 +166,16 @@ export class AppService {
   }
 
   playerHasWrittenDefinition(game: Game, name: string): boolean {
-    return game.definitions.find(definition => definition.playerName === name) !== undefined;
+    return (
+      game.definitions.find((definition) => definition.playerName === name) !==
+      undefined
+    );
   }
 
   playerHasVoted(game: Game, name: string): boolean {
-    return game.allDefinitions.find(vote => vote.playerName === name) !== undefined;
+    return (
+      game.allDefinitions.find((vote) => vote.playerName === name) !== undefined
+    );
   }
 
   getStateOfJoiningPlayer(game: Game, name: string): PlayerState {
@@ -161,7 +184,9 @@ export class AppService {
     if (playerIsBluff) {
       switch (game.gameState) {
         case GameState.WritingDefinition:
-          return game.correctDefinition ? PlayerState.Ready : PlayerState.NotReady;
+          return game.correctDefinition
+            ? PlayerState.Ready
+            : PlayerState.NotReady;
         case GameState.WritingWord:
           game.word ? PlayerState.Ready : PlayerState.NotReady;
         case GameState.ValidatingDefinitions:
@@ -176,9 +201,13 @@ export class AppService {
     } else {
       switch (game.gameState) {
         case GameState.WritingDefinition:
-          return this.playerHasWrittenDefinition(game, name) ? PlayerState.Ready : PlayerState.NotReady;
+          return this.playerHasWrittenDefinition(game, name)
+            ? PlayerState.Ready
+            : PlayerState.NotReady;
         case GameState.Voting:
-          return this.playerHasVoted(game, name) ? PlayerState.Ready : PlayerState.NotReady;
+          return this.playerHasVoted(game, name)
+            ? PlayerState.Ready
+            : PlayerState.NotReady;
         case GameState.Lobby:
         case GameState.WritingWord:
         case GameState.ValidatingDefinitions:
@@ -188,5 +217,4 @@ export class AppService {
       }
     }
   }
-
 }

@@ -7,7 +7,10 @@ import { shuffle } from './utils/shuffle';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService, private readonly socketGateway: SocketGateway) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly socketGateway: SocketGateway,
+  ) {}
 
   @Get()
   getHello(): string {
@@ -22,28 +25,28 @@ export class AppController {
 
     for (let i = 0, len = 1000; i < len; i++) {
       temp = generateNumberString(4);
-      if (games.every(game => game.room !== temp)) {
+      if (games.every((game) => game.room !== temp)) {
         newRoom = temp;
 
         break;
       }
-
     }
 
     if (newRoom) {
       this.socketGateway.joinRoom(socketId, newRoom);
       const newGame: Game = {
         room: newRoom,
-        bluff: undefined, 
-        players: [{socketId, name: '', state: PlayerState.SelectingName}], 
-        gameState: GameState.Lobby, 
-        word: '', 
-        definitions: [], 
+        bluff: undefined,
+        players: [{ socketId, name: '', state: PlayerState.SelectingName }],
+        gameState: GameState.Lobby,
+        word: '',
+        definitions: [],
         allDefinitions: [],
-        correctDefinition: undefined, 
-        correctDefinitions: [], 
+        correctDefinition: undefined,
+        correctDefinitions: [],
         points: [],
-      }
+      };
+
       setGames([...games, newGame]);
       this.socketGateway.updateToRoom(newRoom, newGame);
 
@@ -59,16 +62,19 @@ export class AppController {
 
     if (game) {
       this.socketGateway.joinRoom(socketId, room);
-      game.players.push({socketId, name: '', state: PlayerState.SelectingName});
+      game.players.push({
+        socketId,
+        name: '',
+        state: PlayerState.SelectingName,
+      });
 
-      setGames(games)
+      setGames(games);
       this.socketGateway.updateToRoom(room, game);
 
       return game;
     }
 
     throw new NotFoundException();
-    
   }
 
   @Post('leave')
@@ -80,18 +86,23 @@ export class AppController {
   setName(@Body('socketId') socketId: string, @Body('name') name: string) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
-    console.log({gameIndex, playerIndex, socketId, name});
+    console.log({ gameIndex, playerIndex, socketId, name });
 
     if (gameIndex != null && playerIndex != null) {
       const game = games[gameIndex];
-      const sameNamedPlayer = game.players.findIndex(player => player.name === name);
-      let keepedPlayerIndex = sameNamedPlayer === -1 ? playerIndex : sameNamedPlayer;
+      const sameNamedPlayer = game.players.findIndex(
+        (player) => player.name === name,
+      );
+      const keepedPlayerIndex =
+        sameNamedPlayer === -1 ? playerIndex : sameNamedPlayer;
 
       game.players[keepedPlayerIndex].socketId = socketId;
       game.players[keepedPlayerIndex].name = name;
-      game.players[keepedPlayerIndex].state = this.appService.getStateOfJoiningPlayer(game, name);
+      game.players[keepedPlayerIndex].state =
+        this.appService.getStateOfJoiningPlayer(game, name);
 
       if (keepedPlayerIndex !== playerIndex) {
         game.players.splice(playerIndex, 1);
@@ -100,23 +111,22 @@ export class AppController {
       setGames(games);
       this.socketGateway.updateToRoom(game.room, game);
 
-
       return game;
     }
 
     throw new NotFoundException();
-    
   }
 
   @Post('startRound')
   startRound(@Body('socketId') socketId: string) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
-    } 
+    }
 
     const game = games[gameIndex];
 
@@ -138,11 +148,12 @@ export class AppController {
   setWord(@Body('socketId') socketId: string, @Body('word') word: string) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
-    } 
+    }
 
     const game = games[gameIndex];
 
@@ -156,7 +167,7 @@ export class AppController {
 
     game.word = word;
     game.gameState = GameState.WritingDefinition;
-    game.players.forEach(player => player.state = PlayerState.NotReady);
+    game.players.forEach((player) => (player.state = PlayerState.NotReady));
 
     setGames(games);
     this.socketGateway.updateToRoom(game.room, game);
@@ -165,10 +176,14 @@ export class AppController {
   }
 
   @Post('setDefinition')
-  setDefinition(@Body('socketId') socketId: string, @Body('definition') definition: string) {
+  setDefinition(
+    @Body('socketId') socketId: string,
+    @Body('definition') definition: string,
+  ) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
@@ -182,7 +197,7 @@ export class AppController {
     for (let i = 0, len = 1000; i < len; i++) {
       temp = generateNumberString(4);
 
-      if (game.definitions.every(definition => definition.id !== temp)) {
+      if (game.definitions.every((definition) => definition.id !== temp)) {
         id = temp;
 
         break;
@@ -193,7 +208,13 @@ export class AppController {
       throw new NotFoundException('COuld not generate unique id, try again');
     }
 
-    const newDefinition = {id, definition, playerSocketId: socketId, playerName: player.name, votes: []};
+    const newDefinition = {
+      id,
+      definition,
+      playerSocketId: socketId,
+      playerName: player.name,
+      votes: [],
+    };
 
     if (game.gameState !== GameState.WritingDefinition) {
       throw new NotFoundException('Game is not in the right state');
@@ -208,14 +229,18 @@ export class AppController {
 
     game.players[playerIndex].state = PlayerState.Ready;
 
-    const everyPlayerReady = game.players.every(player => player.state !== PlayerState.NotReady);
+    const everyPlayerReady = game.players.every(
+      (player) => player.state !== PlayerState.NotReady,
+    );
+
     if (everyPlayerReady) {
       game.gameState = GameState.ValidatingDefinitions;
 
-      const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff?.socketId);
+      const bluffPlayerIndex = game.players.findIndex(
+        (player) => player.socketId === game.bluff?.socketId,
+      );
 
       game.players[bluffPlayerIndex].state = PlayerState.NotReady;
-
     }
 
     setGames(games);
@@ -225,14 +250,21 @@ export class AppController {
   }
 
   @Post('continueToVote')
-  continueToVote(@Body('socketId') socketId: string, @Body('playerSocketIdsWithCorrectDefinitions') playerSocketIdsWithCorrectDefinitions: string[]) {
+  continueToVote(
+    @Body('socketId') socketId: string,
+    @Body('playerSocketIdsWithCorrectDefinitions')
+    playerSocketIdsWithCorrectDefinitions: string[],
+  ) {
     if (playerSocketIdsWithCorrectDefinitions.length > 1) {
-      throw new NotFoundException('Only one player can have the correct definition');
+      throw new NotFoundException(
+        'Only one player can have the correct definition',
+      );
     }
 
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
@@ -250,14 +282,19 @@ export class AppController {
     }
 
     for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
-      const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
-      const allDefinitionIndex = game.allDefinitions.findIndex(def => def.playerSocketId === playerSocketId);
+      const definitionIndex = game.definitions.findIndex(
+        (def) => def.playerSocketId === playerSocketId,
+      );
+      const allDefinitionIndex = game.allDefinitions.findIndex(
+        (def) => def.playerSocketId === playerSocketId,
+      );
 
       if (definitionIndex === -1) {
         throw new NotFoundException('Definition not found');
       }
 
       const correctDef = game.definitions.splice(definitionIndex, 1);
+
       game.allDefinitions.splice(allDefinitionIndex, 1);
 
       game.correctDefinitions.push(correctDef[0]);
@@ -265,9 +302,11 @@ export class AppController {
 
     game.gameState = GameState.Voting;
 
-    game.players.forEach(player => player.state = PlayerState.NotReady);
-    game.correctDefinitions.forEach(def => {
-      const readyPlayer = game.players.find(player => player.socketId === def.playerSocketId);
+    game.players.forEach((player) => (player.state = PlayerState.NotReady));
+    game.correctDefinitions.forEach((def) => {
+      const readyPlayer = game.players.find(
+        (player) => player.socketId === def.playerSocketId,
+      );
 
       if (readyPlayer) {
         readyPlayer.state = PlayerState.Ready;
@@ -283,10 +322,15 @@ export class AppController {
   }
 
   @Post('abortRound')
-  abortRound(@Body('socketId') socketId: string, @Body('playerSocketIdsWithCorrectDefinitions') playerSocketIdsWithCorrectDefinitions: string[]) {
+  abortRound(
+    @Body('socketId') socketId: string,
+    @Body('playerSocketIdsWithCorrectDefinitions')
+    playerSocketIdsWithCorrectDefinitions: string[],
+  ) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
@@ -304,7 +348,10 @@ export class AppController {
     }
 
     for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
-      const definitionIndex = game.definitions.findIndex(def => def.playerSocketId === playerSocketId);
+      const definitionIndex = game.definitions.findIndex(
+        (def) => def.playerSocketId === playerSocketId,
+      );
+
       if (definitionIndex === -1) {
         throw new NotFoundException('Definition not found');
       }
@@ -327,10 +374,14 @@ export class AppController {
   }
 
   @Post('vote')
-  vote(@Body('socketId') socketId: string, @Body('definitionId') definitionId: string) {
+  vote(
+    @Body('socketId') socketId: string,
+    @Body('definitionId') definitionId: string,
+  ) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
@@ -339,34 +390,44 @@ export class AppController {
     const game = games[gameIndex];
     const player = game.players[playerIndex];
 
-    const allDefiniton = game.allDefinitions.find(def => def.id === definitionId);
+    const allDefiniton = game.allDefinitions.find(
+      (def) => def.id === definitionId,
+    );
 
     if (allDefiniton == null) {
       throw new NotFoundException('Definition not found');
     }
 
     if (allDefiniton.playerSocketId === socketId) {
-      throw new NotFoundException('You cannot vote for your own definition', 'Et voi äänestää omaa arvaustasi');
+      throw new NotFoundException(
+        'You cannot vote for your own definition',
+        'Et voi äänestää omaa arvaustasi',
+      );
     }
 
     const vote = {
       playerSocketId: socketId,
       playerName: player.name,
-    }
+    };
 
     allDefiniton.votes.push(vote);
 
     player.state = PlayerState.Ready;
 
-    const everyPlayerReady = game.players.every(player => player.state !== PlayerState.NotReady);
-      if (everyPlayerReady) {
-        game.gameState = GameState.RoundEnd;
+    const everyPlayerReady = game.players.every(
+      (player) => player.state !== PlayerState.NotReady,
+    );
 
-        const bluffPlayerIndex = game.players.findIndex(player => player.socketId === game.bluff?.socketId);
+    if (everyPlayerReady) {
+      game.gameState = GameState.RoundEnd;
 
-        game.players[bluffPlayerIndex].state = PlayerState.NotReady;
-        game.points = this.appService.calculatePoints(game);
-      }
+      const bluffPlayerIndex = game.players.findIndex(
+        (player) => player.socketId === game.bluff?.socketId,
+      );
+
+      game.players[bluffPlayerIndex].state = PlayerState.NotReady;
+      game.points = this.appService.calculatePoints(game);
+    }
 
     setGames(games);
     this.socketGateway.updateToRoom(game.room, game);
@@ -378,7 +439,8 @@ export class AppController {
   endRound(@Body('socketId') socketId: string) {
     const games = getGames();
 
-    const {gameIndex, playerIndex} = this.appService.getGameIndexAndPlayerIndex(games, socketId);
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
 
     if (gameIndex == null || playerIndex == null) {
       throw new NotFoundException('Game or player not found');
@@ -419,5 +481,3 @@ export class AppController {
     throw new NotFoundException('Game or player not found');
   }
 }
-
-

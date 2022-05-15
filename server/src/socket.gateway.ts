@@ -1,8 +1,16 @@
-import { Injectable } from "@nestjs/common";
-import { MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect } from "@nestjs/websockets";
+import { Injectable } from '@nestjs/common';
+import {
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  ConnectedSocket,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { AppService } from "./app.service";
-import { getGames, PlayerState, setGames } from "./games";
+import { AppService } from './app.service';
+import { getGames, PlayerState, setGames } from './games';
 
 @Injectable()
 @WebSocketGateway()
@@ -14,7 +22,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleConnection(@ConnectedSocket() client: Socket): void {
     console.log(`connected: ${client.id}`);
-
   }
 
   handleDisconnect(client: Socket) {
@@ -36,6 +43,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (gameIndex !== null && playerIndex !== null) {
       const game = games[gameIndex];
       const player = game.players[playerIndex];
+
       if (player.state === PlayerState.SelectingName) {
         game.players.splice(playerIndex, 1);
       } else {
@@ -65,8 +73,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() message: string, @ConnectedSocket() client: Socket): void {
+  handleMessage(
+    @MessageBody() message: string,
+    @ConnectedSocket() client: Socket,
+  ): void {
     console.log(`message from: ${client.id}`);
-    this.server.emit('message', `message: ${message}, response: hello from server!`);
+    this.server.emit(
+      'message',
+      `message: ${message}, response: hello from server!`,
+    );
   }
 }

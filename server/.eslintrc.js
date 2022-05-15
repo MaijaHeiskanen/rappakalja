@@ -1,7 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './server/tsconfig.json',
+    project: './tsconfig.json',
     sourceType: 'module',
   },
   plugins: ['@typescript-eslint/eslint-plugin'],
@@ -16,6 +16,34 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
+    "padding-line-between-statements": [2,
+      {
+        "blankLine": "always",
+        "next": "*",
+        "prev": ["const", "let", "var"]
+      },
+      {
+        "blankLine": "any",
+        "next": ["const", "let", "var"],
+        "prev": ["const", "let", "var"]
+      },
+      {
+        "blankLine": "always",
+        "next": "*",
+        "prev": "directive"
+      },
+      {
+        "blankLine": "any",
+        "next": "directive",
+        "prev": "directive"
+      },
+      {
+        "blankLine": "always",
+        "next": "return",
+        "prev": "*"
+      }
+    ],
+    "semi": [2, "always"],
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

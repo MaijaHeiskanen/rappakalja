@@ -32,26 +32,28 @@ export class AppController {
       }
     }
 
-    if (newRoom) {
-      this.socketGateway.joinRoom(socketId, newRoom);
-      const newGame: Game = {
-        room: newRoom,
-        bluff: undefined,
-        players: [{ socketId, name: '', state: PlayerState.SelectingName }],
-        gameState: GameState.Lobby,
-        word: '',
-        definitions: [],
-        allDefinitions: [],
-        correctDefinition: undefined,
-        correctDefinitions: [],
-        points: [],
-      };
-
-      setGames([...games, newGame]);
-      this.socketGateway.updateToRoom(newRoom, newGame);
-
-      return newGame;
+    if (!newRoom) {
+      throw new Error('Could not create room');
     }
+
+    this.socketGateway.joinRoom(socketId, newRoom);
+    const newGame: Game = {
+      room: newRoom,
+      bluff: undefined,
+      players: [{ socketId, name: '', state: PlayerState.SelectingName }],
+      gameState: GameState.Lobby,
+      word: '',
+      definitions: [],
+      allDefinitions: [],
+      correctDefinition: undefined,
+      correctDefinitions: [],
+      points: [],
+    };
+
+    setGames([...games, newGame]);
+    this.socketGateway.updateToRoom(newRoom, newGame);
+
+    return newGame;
   }
 
   @Post('join')
@@ -60,21 +62,21 @@ export class AppController {
 
     const game = this.appService.getGame(games, room);
 
-    if (game) {
-      this.socketGateway.joinRoom(socketId, room);
-      game.players.push({
-        socketId,
-        name: '',
-        state: PlayerState.SelectingName,
-      });
-
-      setGames(games);
-      this.socketGateway.updateToRoom(room, game);
-
-      return game;
+    if (!game) {
+      throw new NotFoundException('Game not found');
     }
 
-    throw new NotFoundException();
+    this.socketGateway.joinRoom(socketId, room);
+    game.players.push({
+      socketId,
+      name: '',
+      state: PlayerState.SelectingName,
+    });
+
+    setGames(games);
+    this.socketGateway.updateToRoom(room, game);
+
+    return game;
   }
 
   @Post('leave')

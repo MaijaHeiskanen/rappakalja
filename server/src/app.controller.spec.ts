@@ -35,10 +35,10 @@ describe('AppController', () => {
 
       return request(app.getHttpServer())
         .post('/create')
-        .send({ socketId: 'socketId' })
+        .send({ socketId: 'socketId-1' })
         .expect(201, {
           room: '1234',
-          players: [{ socketId: 'socketId', name: '', state: 0 }],
+          players: [{ socketId: 'socketId-1', name: '', state: 0 }],
           gameState: 0,
           word: '',
           definitions: [],
@@ -58,7 +58,7 @@ describe('AppController', () => {
 
       return request(app.getHttpServer())
         .post('/create')
-        .send({ socketId: 'socketId2' })
+        .send({ socketId: 'socketId-2' })
         .expect(500);
     });
 
@@ -72,10 +72,10 @@ describe('AppController', () => {
 
       return request(app.getHttpServer())
         .post('/create')
-        .send({ socketId: 'socketId3' })
+        .send({ socketId: 'socketId-0' })
         .expect(201, {
           room: '2345',
-          players: [{ socketId: 'socketId3', name: '', state: 0 }],
+          players: [{ socketId: 'socketId-0', name: '', state: 0 }],
           gameState: 0,
           word: '',
           definitions: [],
@@ -87,15 +87,56 @@ describe('AppController', () => {
   });
 
   describe('join', () => {
-    it('Should return new game object with joined player', () => {
+    it('Should return new game object with joined player #2', () => {
       return request(app.getHttpServer())
         .post('/join')
-        .send({ socketId: 'socketId4', room: '1234' })
+        .send({ socketId: 'socketId-2', room: '1234' })
         .expect(201, {
           room: '1234',
           players: [
-            { socketId: 'socketId', name: '', state: 0 },
-            { socketId: 'socketId4', name: '', state: 0 },
+            { socketId: 'socketId-1', name: '', state: 0 },
+            { socketId: 'socketId-2', name: '', state: 0 },
+          ],
+          gameState: 0,
+          word: '',
+          definitions: [],
+          allDefinitions: [],
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return new game object with joined player #3', () => {
+      return request(app.getHttpServer())
+        .post('/join')
+        .send({ socketId: 'socketId-3', room: '1234' })
+        .expect(201, {
+          room: '1234',
+          players: [
+            { socketId: 'socketId-1', name: '', state: 0 },
+            { socketId: 'socketId-2', name: '', state: 0 },
+            { socketId: 'socketId-3', name: '', state: 0 },
+          ],
+          gameState: 0,
+          word: '',
+          definitions: [],
+          allDefinitions: [],
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return new game object with joined player #4', () => {
+      return request(app.getHttpServer())
+        .post('/join')
+        .send({ socketId: 'socketId-4', room: '1234' })
+        .expect(201, {
+          room: '1234',
+          players: [
+            { socketId: 'socketId-1', name: '', state: 0 },
+            { socketId: 'socketId-2', name: '', state: 0 },
+            { socketId: 'socketId-3', name: '', state: 0 },
+            { socketId: 'socketId-4', name: '', state: 0 },
           ],
           gameState: 0,
           word: '',
@@ -110,7 +151,7 @@ describe('AppController', () => {
   it('Should return error if game is not found', () => {
     return request(app.getHttpServer())
       .post('/join')
-      .send({ socketId: 'socketId5', room: '4567' })
+      .send({ socketId: 'socketId-5', room: '4567' })
       .expect(404);
   });
 });

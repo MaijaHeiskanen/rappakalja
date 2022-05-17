@@ -1,4 +1,11 @@
-import { Body, Controller, Get, NotFoundException, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  NotFoundException,
+  Post,
+} from '@nestjs/common';
 import { AppService } from './app.service';
 import { getGames, setGames, PlayerState, GameState, Game } from './games';
 import { SocketGateway } from './socket.gateway';
@@ -81,7 +88,25 @@ export class AppController {
 
   @Post('leave')
   leaveRoom(@Body('socketId') socketId: string, @Body('room') room: string) {
+    const games = getGames();
+
+    const { gameIndex, playerIndex } =
+      this.appService.getGameIndexAndPlayerIndex(games, socketId);
+
+    if (gameIndex == null || playerIndex == null) {
+      throw new NotFoundException('Game or player not found');
+    }
+
     this.socketGateway.leaveRoom(room, socketId);
+
+    const game = games[gameIndex];
+
+    game.players.splice(playerIndex, 1);
+
+    setGames(games);
+    this.socketGateway.updateToRoom(room, game);
+
+    return game;
   }
 
   @Post('setName')
@@ -133,7 +158,7 @@ export class AppController {
     const game = games[gameIndex];
 
     if (game.gameState !== GameState.Lobby) {
-      throw new NotFoundException('Game has already started');
+      throw new ForbiddenException('Round has already started');
     }
 
     game.gameState = GameState.WritingWord;
@@ -160,11 +185,11 @@ export class AppController {
     const game = games[gameIndex];
 
     if (game.bluff?.socketId !== socketId) {
-      throw new NotFoundException('Not the bluff');
+      throw new ForbiddenException('Not the bluff');
     }
 
     if (game.gameState !== GameState.WritingWord) {
-      throw new NotFoundException('Game is not in the right state');
+      throw new ForbiddenException('Game is not in the right state');
     }
 
     game.word = word;

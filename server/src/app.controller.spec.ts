@@ -943,4 +943,135 @@ describe('AppController', () => {
         .expect(403);
     });
   });
+
+  describe('/continueToVote', () => {
+    it('Should return error if player is not bluff', () => {
+      return request(app.getHttpServer())
+        .post('/continueToVote')
+        .send({
+          socketId: 'socketId-2',
+          playerSocketIdsWithCorrectDefinitions: ['socketId-2'],
+        })
+        .expect(403);
+    });
+
+    it('Should return error if player is not found', () => {
+      return request(app.getHttpServer())
+        .post('/continueToVote')
+        .send({
+          socketId: 'socketId-2222',
+          playerSocketIdsWithCorrectDefinitions: ['socketId-2'],
+        })
+        .expect(404);
+    });
+
+    it('Should return game object with updated data', () => {
+      jest.spyOn(Math, 'random').mockImplementation(() => 0.9);
+
+      return request(app.getHttpServer())
+        .post('/continueToVote')
+        .send({
+          socketId: 'socketId-1',
+          playerSocketIdsWithCorrectDefinitions: ['socketId-2'],
+        })
+        .expect(201, {
+          room: '1234',
+          players: [
+            {
+              socketId: 'socketId-1',
+              name: 'Player 1',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-2',
+              name: 'Player 2',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-3',
+              name: 'Player 3',
+              state: PlayerState.NotReady,
+            },
+            {
+              socketId: 'socketId-4',
+              name: 'Player 4',
+              state: PlayerState.NotReady,
+            },
+          ],
+          bluff: {
+            socketId: 'socketId-1',
+            name: 'Player 1',
+            state: PlayerState.Ready,
+          },
+          gameState: GameState.Voting,
+          word: 'Funny word',
+          definitions: [
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+            {
+              id: '0004',
+              definition: 'goofy definition by socketId-4',
+              playerSocketId: 'socketId-4',
+              playerName: 'Player 4',
+              votes: [],
+            },
+          ],
+          allDefinitions: [
+            {
+              id: '0001',
+              definition: 'goofy definition by socketId-1',
+              playerSocketId: 'socketId-1',
+              playerName: 'Player 1',
+              votes: [],
+            },
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+            {
+              id: '0004',
+              definition: 'goofy definition by socketId-4',
+              playerSocketId: 'socketId-4',
+              playerName: 'Player 4',
+              votes: [],
+            },
+          ],
+          correctDefinition: {
+            id: '0001',
+            definition: 'goofy definition by socketId-1',
+            playerSocketId: 'socketId-1',
+            playerName: 'Player 1',
+            votes: [],
+          },
+          correctDefinitions: [
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+          ],
+          points: [],
+        });
+    });
+
+    it('Should return error if game is not in validating definitions state', () => {
+      return request(app.getHttpServer())
+        .post('/continueToVote')
+        .send({
+          socketId: 'socketId-1',
+          playerSocketIdsWithCorrectDefinitions: ['socketId-2'],
+        })
+        .expect(404);
+    });
+  });
 });

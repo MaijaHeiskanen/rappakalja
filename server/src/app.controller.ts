@@ -305,7 +305,7 @@ export class AppController {
     }
 
     if (socketId !== game.bluff?.socketId) {
-      throw new NotFoundException('Not the bluff');
+      throw new ForbiddenException('Not the bluff');
     }
 
     for (const playerSocketId of playerSocketIdsWithCorrectDefinitions) {
@@ -323,7 +323,6 @@ export class AppController {
       const correctDef = game.definitions.splice(definitionIndex, 1);
 
       game.allDefinitions.splice(allDefinitionIndex, 1);
-
       game.correctDefinitions.push(correctDef[0]);
     }
 

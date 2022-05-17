@@ -19,6 +19,14 @@ describe('AppController', () => {
     await app.init();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
+  afterEach(async () => {
+    jest.clearAllMocks();
+  });
+
   describe('root', () => {
     it('Should return "Hello World!"', () => {
       return request(app.getHttpServer()).get('/').expect(200);
@@ -554,6 +562,384 @@ describe('AppController', () => {
       return request(app.getHttpServer())
         .post('/setWord')
         .send({ socketId: 'socketId-1', word: 'goofy word' })
+        .expect(403);
+    });
+  });
+
+  describe('setDefinition', () => {
+    it('Should return error if player is not found', () => {
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({ socketId: 'socketId-222', definition: 'goofy definition' })
+        .expect(404);
+    });
+
+    it('Should return game object with updated data #1', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const module = require('./utils/generateNumberString');
+
+      jest
+        .spyOn(module, 'generateNumberString')
+        .mockImplementation(() => '0001');
+
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({
+          socketId: 'socketId-1',
+          definition: 'goofy definition by socketId-1',
+        })
+        .expect(201, {
+          room: '1234',
+          players: [
+            {
+              socketId: 'socketId-1',
+              name: 'Player 1',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-2',
+              name: 'Player 2',
+              state: PlayerState.NotReady,
+            },
+            {
+              socketId: 'socketId-3',
+              name: 'Player 3',
+              state: PlayerState.NotReady,
+            },
+            {
+              socketId: 'socketId-4',
+              name: 'Player 4',
+              state: PlayerState.NotReady,
+            },
+          ],
+          bluff: {
+            socketId: 'socketId-1',
+            name: 'Player 1',
+            state: PlayerState.Ready,
+          },
+          gameState: GameState.WritingDefinition,
+          word: 'Funny word',
+          definitions: [],
+          allDefinitions: [
+            {
+              id: '0001',
+              definition: 'goofy definition by socketId-1',
+              playerSocketId: 'socketId-1',
+              playerName: 'Player 1',
+              votes: [],
+            },
+          ],
+          correctDefinition: {
+            id: '0001',
+            definition: 'goofy definition by socketId-1',
+            playerSocketId: 'socketId-1',
+            playerName: 'Player 1',
+            votes: [],
+          },
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return game object with updated data #2', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const module = require('./utils/generateNumberString');
+
+      jest
+        .spyOn(module, 'generateNumberString')
+        .mockImplementation(() => '0002');
+
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({
+          socketId: 'socketId-2',
+          definition: 'goofy definition by socketId-2',
+        })
+        .expect(201, {
+          room: '1234',
+          players: [
+            {
+              socketId: 'socketId-1',
+              name: 'Player 1',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-2',
+              name: 'Player 2',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-3',
+              name: 'Player 3',
+              state: PlayerState.NotReady,
+            },
+            {
+              socketId: 'socketId-4',
+              name: 'Player 4',
+              state: PlayerState.NotReady,
+            },
+          ],
+          bluff: {
+            socketId: 'socketId-1',
+            name: 'Player 1',
+            state: PlayerState.Ready,
+          },
+          gameState: GameState.WritingDefinition,
+          word: 'Funny word',
+          definitions: [
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+          ],
+          allDefinitions: [
+            {
+              id: '0001',
+              definition: 'goofy definition by socketId-1',
+              playerSocketId: 'socketId-1',
+              playerName: 'Player 1',
+              votes: [],
+            },
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+          ],
+          correctDefinition: {
+            id: '0001',
+            definition: 'goofy definition by socketId-1',
+            playerSocketId: 'socketId-1',
+            playerName: 'Player 1',
+            votes: [],
+          },
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return game object with updated data #3', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const module = require('./utils/generateNumberString');
+
+      jest
+        .spyOn(module, 'generateNumberString')
+        .mockImplementation(() => '0003');
+
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({
+          socketId: 'socketId-3',
+          definition: 'goofy definition by socketId-3',
+        })
+        .expect(201, {
+          room: '1234',
+          players: [
+            {
+              socketId: 'socketId-1',
+              name: 'Player 1',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-2',
+              name: 'Player 2',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-3',
+              name: 'Player 3',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-4',
+              name: 'Player 4',
+              state: PlayerState.NotReady,
+            },
+          ],
+          bluff: {
+            socketId: 'socketId-1',
+            name: 'Player 1',
+            state: PlayerState.Ready,
+          },
+          gameState: GameState.WritingDefinition,
+          word: 'Funny word',
+          definitions: [
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+          ],
+          allDefinitions: [
+            {
+              id: '0001',
+              definition: 'goofy definition by socketId-1',
+              playerSocketId: 'socketId-1',
+              playerName: 'Player 1',
+              votes: [],
+            },
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+          ],
+          correctDefinition: {
+            id: '0001',
+            definition: 'goofy definition by socketId-1',
+            playerSocketId: 'socketId-1',
+            playerName: 'Player 1',
+            votes: [],
+          },
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return game object with updated data #4', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const module = require('./utils/generateNumberString');
+
+      jest
+        .spyOn(module, 'generateNumberString')
+        .mockImplementation(() => '0004');
+
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({
+          socketId: 'socketId-4',
+          definition: 'goofy definition by socketId-4',
+        })
+        .expect(201, {
+          room: '1234',
+          players: [
+            {
+              socketId: 'socketId-1',
+              name: 'Player 1',
+              state: PlayerState.NotReady,
+            },
+            {
+              socketId: 'socketId-2',
+              name: 'Player 2',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-3',
+              name: 'Player 3',
+              state: PlayerState.Ready,
+            },
+            {
+              socketId: 'socketId-4',
+              name: 'Player 4',
+              state: PlayerState.Ready,
+            },
+          ],
+          bluff: {
+            socketId: 'socketId-1',
+            name: 'Player 1',
+            state: PlayerState.NotReady,
+          },
+          gameState: GameState.ValidatingDefinitions,
+          word: 'Funny word',
+          definitions: [
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+            {
+              id: '0004',
+              definition: 'goofy definition by socketId-4',
+              playerSocketId: 'socketId-4',
+              playerName: 'Player 4',
+              votes: [],
+            },
+          ],
+          allDefinitions: [
+            {
+              id: '0001',
+              definition: 'goofy definition by socketId-1',
+              playerSocketId: 'socketId-1',
+              playerName: 'Player 1',
+              votes: [],
+            },
+            {
+              id: '0002',
+              definition: 'goofy definition by socketId-2',
+              playerSocketId: 'socketId-2',
+              playerName: 'Player 2',
+              votes: [],
+            },
+            {
+              id: '0003',
+              definition: 'goofy definition by socketId-3',
+              playerSocketId: 'socketId-3',
+              playerName: 'Player 3',
+              votes: [],
+            },
+            {
+              id: '0004',
+              definition: 'goofy definition by socketId-4',
+              playerSocketId: 'socketId-4',
+              playerName: 'Player 4',
+              votes: [],
+            },
+          ],
+          correctDefinition: {
+            id: '0001',
+            definition: 'goofy definition by socketId-1',
+            playerSocketId: 'socketId-1',
+            playerName: 'Player 1',
+            votes: [],
+          },
+          correctDefinitions: [],
+          points: [],
+        });
+    });
+
+    it('Should return error if game state is not writing definition', () => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const module = require('./utils/generateNumberString');
+
+      jest
+        .spyOn(module, 'generateNumberString')
+        .mockImplementation(() => '0005');
+
+      return request(app.getHttpServer())
+        .post('/setDefinition')
+        .send({ socketId: 'socketId-1', definition: 'goofy definition' })
         .expect(403);
     });
   });

@@ -244,7 +244,7 @@ export class AppController {
     };
 
     if (game.gameState !== GameState.WritingDefinition) {
-      throw new NotFoundException('Game is not in the right state');
+      throw new ForbiddenException('Game is not in the right state');
     }
 
     if (socketId === game.bluff?.socketId) {
